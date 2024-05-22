@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import 'login.dart';
+
+
 
 void main() {
   runApp(const MyApp());
@@ -9,6 +13,7 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  static final String ipAddress = "10.131.75.51";
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -45,6 +50,9 @@ class MyApp extends StatelessWidget {
 
     );
   }
+
+
+
 
 
 }

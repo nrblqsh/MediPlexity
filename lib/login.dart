@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Patient/forgotPasswordScreen.dart';
 import 'Patient/patientHomePage.dart';
+import 'Specialist/specialistHomePage.dart';
 import 'main.dart';
 
 
@@ -242,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
     else {
       print("dapat");
       var url = Uri.http(
-          "192.168.8.108", '/mediplexity/login.php', {'q': '{http}'});
+          MyApp.ipAddress, '/mediplexity/login.php', {'q': '{http}'});
 
       try {
         var response = await http.post(url, body: {
@@ -294,6 +295,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (data["status"] == "success specialist") {
           print("doctor masuk");
 
+
           String specialistName = data["specialistName"];
           int specialistID = int.parse(data["specialistID"]);
           String logStatus = data["logStatus"] ?? 'OFFLINE'; // Use null-aware operator
@@ -324,14 +326,23 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 16.0,
           );
 
-          phoneController.clear();
-          passwordController.clear();
-          // Navigator.push(
-          //     context, MaterialPageRoute(builder: (context) =>
-          //     SpecialistHomeScreen(),));
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SpecialistHomePage(
+                phone: phoneController.text,
+                specialistName: specialistName, specialistID: specialistID,),
+
+            ),
+          );
+
           setState(() {
 
           });
+          //
+          // phoneController.clear();
+          // passwordController.clear();
         }
         else {
           print("tah la");

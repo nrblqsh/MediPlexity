@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     else{
       print("tak sikit");
-      var url = Uri.http("10.131.72.123", '/mediplexity/register.php', {'q': '{http}'});
+      var url = Uri.http(MyApp.ipAddress, '/mediplexity/register.php', {'q': '{http}'});
       var response = await http.post(url , body: {
         "patientName" : nameController.text.toString(),
         "phone"    : phoneController.text.toString(),

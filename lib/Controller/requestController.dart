@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-
 class RequestController {
   String path;
   String server;
@@ -13,7 +12,7 @@ class RequestController {
   dynamic _resultData;
   Map<dynamic, dynamic> get requestBody => _body;
 
-  RequestController({required this.path, this.server = "http://10.131.78.172"});
+  RequestController({required this.path, this.server = "http://10.131.75.51"});
 
   // Set the request body for JSON requests
   setBody(Map<String, dynamic> data) {
@@ -26,21 +25,20 @@ class RequestController {
     _body[fieldName] = http.MultipartFile.fromBytes(
       'image',
       fileBytes,
-      filename: filename ?? 'image.jpg',
+      filename: filename ?? 'image.png',
       contentType: MediaType('application', 'octet-stream'), // Set the content type
     );
   }
-
 
   // Set headers to indicate multipart/form-data content
   void setMultipartFormData() {
     _headers.remove("Content-Type");
   }
+
   Future<void> post() async {
     if (_body.isNotEmpty && _body.values.any((value) => value is http.MultipartFile)) {
       // If there is a file in the request, use MultipartRequest
-      var request = http.MultipartRequest('POST', Uri.parse(_getUrl()))
-        ..headers.addAll(_headers);
+      var request = http.MultipartRequest('POST', Uri.parse(_getUrl()))..headers.addAll(_headers);
 
       for (var entry in _body.entries) {
         if (entry.value is http.MultipartFile) {
@@ -95,11 +93,21 @@ class RequestController {
     _parseResult();
   }
 
+  Future<void> delete() async {
+    _res = await http.delete(
+      Uri.parse(_getUrl()),
+      headers: _headers,
+    );
+
+    _parseResult();
+  }
+
   // Construct the full URL
   String _getUrl() {
     return (Uri.parse(server + path)).toString();
   }
 
+  // Parse the response result based on content type
   // Parse the response result based on content type
   void _parseResult() {
     try {
@@ -107,13 +115,15 @@ class RequestController {
         String contentType = _res!.headers['content-type'] ?? '';
 
         if (contentType.contains('application/json')) {
-          final jsonString = _res!.body;
+          String jsonString = _res!.body.replaceAll('NaN', 'null'); // Replace 'NaN' with 'null'
           print("Received JSON String: $jsonString");
 
           if (jsonString.isEmpty) {
             _resultData = null;
           } else {
             _resultData = jsonDecode(jsonString);
+            _cleanInvalidValues(_resultData);
+            _parseListStrings(_resultData);
           }
         } else {
           print("Non-JSON response: $contentType");
@@ -128,6 +138,43 @@ class RequestController {
       print("StackTrace: $stackTrace");
       print("Response body: ${_res?.body}");
       _resultData = null;
+    }
+  }
+
+  // Clean invalid values from the JSON response
+  // Clean invalid values from the JSON response
+  void _cleanInvalidValues(dynamic data) {
+    if (data is Map) {
+      data.forEach((key, value) {
+        if (value is List) {
+          value.removeWhere((element) => element == null || element.toString().contains('NaN'));
+        } else if (value == null || value.toString().contains('NaN')) {
+          data[key] = '';
+        } else if (value is Map || value is List) {
+          _cleanInvalidValues(value);
+        }
+      });
+    } else if (data is List) {
+      data.removeWhere((element) => element == null || element.toString().contains('NaN'));
+      data.forEach((element) {
+        if (element is Map || element is List) {
+          _cleanInvalidValues(element);
+        }
+      });
+    }
+  }
+
+
+  // Parse list strings into actual Dart lists
+  void _parseListStrings(dynamic data) {
+    if (data is Map) {
+      data.forEach((key, value) {
+        if (value is List && value.isNotEmpty && value[0] is String && value[0].startsWith("['")) {
+          data[key] = value.map((item) {
+            return jsonDecode(item.replaceAll("'", '"'));
+          }).expand((i) => i).toList();
+        }
+      });
     }
   }
 

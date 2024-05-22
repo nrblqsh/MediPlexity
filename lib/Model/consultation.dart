@@ -1,0 +1,577 @@
+// consultation.dart
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+
+import 'package:shared_preferences/shared_preferences.dart';
+import '';
+import '../Controller/requestController.dart';
+import '../main.dart';
+
+
+//
+class Consultation {
+  int? consultationID; // Assuming it's nullable and auto-incremented
+  int patientID;
+  DateTime consultationDateTime;
+  int specialistID;
+  String? consultationSymptom;
+  String? consultationTreatment;
+  String consultationStatus;
+  String? specialistName;
+  String? patientName;
+  String? icNum;
+  String? gender;
+  DateTime? birthDate;
+  String? phone; // Add specialist's name field
+  Uint8List? patientImage;
+  String? feesConsultation;
+
+  // int? medicationID;
+  // int? MedID;
+  // String? MedGeneral;
+  // String? MedForm;
+
+  //String? specialistTitle;
+  //int pro
+
+
+  Consultation({
+    this.consultationID,
+    required this.patientID,
+     required this.consultationDateTime,
+    required this.specialistID,
+     required this.consultationStatus,
+     this.consultationTreatment,
+     this.consultationSymptom,
+    this.specialistName,
+    this.patientName,
+    this.icNum,
+    this.gender,
+    this.birthDate,
+    this.phone,
+    this.patientImage,
+    this.feesConsultation,
+    // this.medicationID,
+    // this.MedID,
+    // this.MedGeneral,
+    // this.MedForm,
+
+    // this.specialistTitle,
+  });
+
+  factory Consultation.fromJson(Map<String, dynamic> json) {
+    return Consultation(
+      consultationID: json['consultationID'] as int?,
+      patientID: json['patientID'] as int,
+      consultationDateTime: DateTime.parse(json['consultationDateTime']),
+      specialistID: json['specialistID'] as int,
+      consultationTreatment: json['consultationTreatment'] ?? '',
+      // Provide default value for non-nullable fields
+      consultationStatus: json['consultationStatus'] ?? '',
+      // Provide default value for non-nullable fields
+      consultationSymptom: json['consultationSymptom'] ?? '',
+      // Provide default value for non-nullable fields
+      specialistName: json['specialistName'] ?? '',
+      patientName: json['patientName'] ?? '',
+      icNum: json['icNumber'] ?? '',
+      gender: json['gender'] ?? '',
+      birthDate: json['birthDate'] != null
+          ? DateTime.tryParse(json['birthDate'])
+          : DateTime.parse('0000-00-00'),
+      phone: json['phone'] ?? '',
+      patientImage: base64Decode(json["base64Image"] ?? ''),
+      feesConsultation: json['feesConsultation'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'consultationID': consultationID,
+    'patientID': patientID,
+    'consultationDateTime': consultationDateTime.toString(),
+    'specialistID': specialistID,
+    'consultationTreatment': consultationTreatment,
+    'consultationStatus': consultationStatus,
+    'consultationSymptom': consultationSymptom,
+    'specialistName': specialistName,
+    'patientName': patientName,
+    'icNumber': icNum,
+    'gender': gender,
+    'birthDate': birthDate.toString(),
+    'phone': phone,
+    'patientImage': patientImage,
+    // 'medicationID': medicationID,
+    // 'MedID': MedID,
+    // 'MedForm': MedForm,
+    // 'MedGeneral': MedGeneral,
+
+    //'specialistTitle':specialistTitle
+  };
+
+
+
+  //add save
+  Future<bool> save() async {
+    // API OPERATION
+    RequestController req =
+    RequestController(path: '/mediplexity/consultation.php');
+    req.setBody(toJson());
+    await req.post();
+    if (req.status() == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static Future<List<Consultation>> viewUpcomingAppointmentforPatientSide(int patientID) async {
+
+    // Instantiate RequestController
+    RequestController req = RequestController(
+      path: "/mediplexity/consultation.php?patientID=${patientID}",
+    );
+
+    // Make a GET request
+    await req.get();
+
+    if (req.status() == 200 && req.result() != null) {
+      dynamic resultData = req.result();
+
+      try {
+        if (resultData is List<dynamic>) {
+          // Parse the list of specialists from the response
+          List<Consultation> consultation = resultData
+              .map((data) => Consultation.fromJson(data))
+              .toList();
+          return consultation;
+        } else {
+          print('Unexpected response format. Body is not a JSON array.');
+          return [];
+        }
+      } catch (e) {
+        print('Error parsing response: $e');
+        return [];
+      }
+    } else {
+      // Handle the case when the request failed
+      print('Error loading cpnsultation: ${req.status()}');
+      return [];
+    }
+  }
+
+
+
+
+  static Future<List<Consultation>> viewUpcomingAppointmentforSpecialistSide(int specialistID) async {
+
+    // Instantiate RequestController
+    RequestController req = RequestController(
+      path: "/mediplexity/getUpcomingAppointment.php?specialistID=${specialistID}",
+    );
+
+    // Make a GET request
+    await req.get();
+
+    // Inside your getTodayAppointmentforSpecialist function
+    if (req.status() == 200 && req.result() != null) {
+      dynamic resultData = req.result();
+
+      try {
+        if (resultData['success'] == true) {
+          List<dynamic> consultationData = resultData['data'];
+
+          // Parse the list of consultations from the response data
+          List<Consultation> consultations = consultationData
+              .map((data) => Consultation.fromJson(data))
+              .toList();
+          return consultations;
+        } else {
+          print('Error from server: ${resultData['error']}');
+          return [];
+        }
+      } catch (e) {
+        print('Error parsing response: $e');
+        return [];
+      }
+    } else {
+      // Handle the case when the request failed
+      print('Error loading consultation: ${req.status()}');
+      return [];
+    }
+
+  }
+
+
+  static Future<void> cancelAppointment(int consultationID) async {
+    // Instantiate RequestController
+    RequestController req = RequestController(
+      path: "/mediplexity/cancelAppointment.php?consultationID=$consultationID",
+    );
+
+    // Make a DELETE request
+    await req.delete();
+
+    if (req.status() == 200) {
+      print("Appointment canceled successfully");
+    } else {
+      // Handle the case when the request failed
+      print('Error canceling appointment: ${req.status()}');
+    }
+  }
+
+
+  static Future<List<Consultation>> getTodayAppointmentforSpecialist(int specialistID) async {
+
+    // Instantiate RequestController
+    RequestController req = RequestController(
+      path: "/mediplexity/getTodayAppointment.php?specialistID=${specialistID}",
+    );
+
+    // Make a GET request
+    await req.get();
+
+    // Inside your getTodayAppointmentforSpecialist function
+    if (req.status() == 200 && req.result() != null) {
+      dynamic resultData = req.result();
+
+      try {
+        if (resultData['success'] == true) {
+          List<dynamic> consultationData = resultData['data'];
+
+          // Parse the list of consultations from the response data
+          List<Consultation> consultations = consultationData
+              .map((data) => Consultation.fromJson(data))
+              .toList();
+          return consultations;
+        } else {
+          print('Error from server: ${resultData['error']}');
+          return [];
+        }
+      } catch (e) {
+        print('Error parsing response: $e');
+        return [];
+      }
+    } else {
+      // Handle the case when the request failed
+      print('Error loading consultation: ${req.status()}');
+      return [];
+    }
+
+  }
+
+
+  static Future<bool> updateConsultationStatus(int consultationID, String newStatus) async {
+    try {
+      // Instantiate RequestController
+      RequestController req = RequestController(
+        path: '/mediplexity/updateConsultationStatus.php?consultationID=$consultationID&updateConsultationStatus=$newStatus',
+        // Add server address if needed
+      );
+
+      // Add parameters to the URL
+
+
+      // Make a GET request
+      await req.get();
+
+      // Check the response status
+      if (req.status() == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Error updating consultation status: $e');
+      return false;
+    }
+  }
+
+
+// Future<void> cancelAppointment(int consultationID) async {
+  //   final String url = 'http://${MyApp.ipAddress}/mediplexity/cancelAppointment.php?consultationID=$consultationID&patientID=$patientID';
+  //
+  //   final response = await http.delete(Uri.parse(url));
+  //
+  //   if (response.statusCode == 200) {
+  //     print('Appointment deleted successfully');
+  //     // Reload the data after successful deletion
+  //
+  //   } else {
+  //     print('Failed to delete appointment: ${response.statusCode}');
+  //     // Handle error as needed
+  //   }
+  // }
+// Future<List<Consultation>> fetchConsultations() async {
+  //   final String url =
+  //       'http://${MyApp.ipAddress}/teleclinic/consultation.php'; // Modify the path accordingly
+  //   final response = await http.get(Uri.parse(url));
+  //
+  //   if (response.statusCode == 200) {
+  //     final List<dynamic> responseData = json.decode(response.body);
+  //     return responseData.map((data) => Consultation.fromJson(data)).toList();
+  //   } else {
+  //     throw Exception('Failed to fetch consultations');
+  //   }
+  // }
+  //
+  // Future<List<Consultation>> fetchConsultationByPatient(
+  //     int specialistID, int patientID) async {
+  //   final String url =
+  //       'http://${MyApp.ipAddress}/teleclinic/patientConsultation.php?patientID=$patientID&&specialistID=$specialistID'; // Modify the path accordingly
+  //   final response = await http.get(Uri.parse(url));
+  //
+  //   if (response.statusCode == 200) {
+  //     final List<dynamic> responseData = json.decode(response.body);
+  //     return responseData.map((data) => Consultation.fromJson(data)).toList();
+  //   } else {
+  //     throw Exception('Failed to fetch consultations');
+  //   }
+  // }
+
+  // Future<List<Consultation>> fetchTodayConsultationsPatientSide(int patientID) async {
+  //   final String url = 'http://${MyApp.ipAddress}/teleclinic/getTodayConsultationPatientSide.php?patientID=$patientID';
+  //   final response = await http.get(Uri.parse(url));
+  //   print(specialistID);
+  //   print('Response Status Code: ${response.statusCode}');
+  //   print('Content-Type: ${response.headers['content-type']}');
+  //   print('Response Body: ${response.body}');
+  //
+  //   if (response.statusCode == 200) {
+  //     try {
+  //       dynamic responseBody = json.decode(response.body);
+  //
+  //       // Check if the response is a JSON object
+  //       if (responseBody is Map<String, dynamic> && responseBody.containsKey('data')) {
+  //         List<Consultation> consultations = List<Consultation>.from(responseBody['data']
+  //             .map((consultationData) => Consultation.fromJson(consultationData)));
+  //         return consultations;
+  //       } else {
+  //         print('Unexpected response format. Body is not a JSON object.');
+  //         return [];
+  //       }
+  //
+  //     } catch (e) {
+  //       print('Error parsing response: $e');
+  //       throw Exception('Error parsing response: $e');
+  //     }
+  //   } else {
+  //     print('Failed to fetch today\'s consultations. Status Code: ${response.statusCode}');
+  //     throw Exception('Failed to fetch today\'s consultations. Status Code: ${response.statusCode}');
+  //   }
+  // }
+
+  // Future<List<Consultation>> fetchUpcomingConsultations(
+  //     int specialistID) async {
+  //   final String url =
+  //       'http://${MyApp.ipAddress}/teleclinic/getUpcomingAppointment.php?specialistID=$specialistID';
+  //   final response = await http.get(Uri.parse(url));
+  //
+  //   if (response.statusCode == 200) {
+  //     try {
+  //       dynamic responseBody = json.decode(response.body);
+  //
+  //       if (responseBody is Map<String, dynamic> &&
+  //           responseBody.containsKey('data')) {
+  //         List<Consultation> consultations = List<Consultation>.from(
+  //             responseBody['data'].map((consultationData) =>
+  //                 Consultation.fromJson(consultationData)));
+  //         return consultations;
+  //       } else {
+  //         print('Unexpected response format. Body is not a JSON object.');
+  //         return [];
+  //       }
+  //     } catch (e) {
+  //       print('Error parsing response: $e');
+  //       throw Exception('Error parsing response: $e');
+  //     }
+  //   } else {
+  //     print(
+  //         'Failed to fetch upcoming consultations. Status Code: ${response.statusCode}');
+  //     throw Exception(
+  //         'Failed to fetch upcoming consultations. Status Code: ${response.statusCode}');
+  //   }
+  // }
+
+  // Future<List<Consultation>> fetchSpecialistConsultationHistory(
+  //     int specialistID) async {
+  //   final String url =
+  //       'http://${MyApp.ipAddress}/teleclinic/getSpecialistConsultationHistory.php?specialistID=$specialistID';
+  //   final response = await http.get(Uri.parse(url));
+  //
+  //   if (response.statusCode == 200) {
+  //     try {
+  //       dynamic responseBody = json.decode(response.body);
+  //
+  //       if (responseBody is Map<String, dynamic> &&
+  //           responseBody.containsKey('data')) {
+  //         List<Consultation> consultations = List<Consultation>.from(
+  //             responseBody['data'].map((consultationData) =>
+  //                 Consultation.fromJson(consultationData)));
+  //         return consultations;
+  //       } else {
+  //         print('Unexpected response format. Body is not a JSON object.');
+  //         return [];
+  //       }
+  //     } catch (e) {
+  //       print('Error parsing response: $e');
+  //       throw Exception('Error parsing response: $e');
+  //     }
+  //   } else {
+  //     print(
+  //         'Failed to fetch consultation history. Status Code: ${response.statusCode}');
+  //     throw Exception(
+  //         'Failed to fetch consultation history. Status Code: ${response.statusCode}');
+  //   }
+  // }
+
+  // Future<List<Consultation>> fetchPatientConsultation(int patientID) async {
+  //   final String url = 'http://${MyApp.ipAddress}/teleclinic/patientConsultationHistory.php?patientID=$patientID';
+  //   final response = await http.get(Uri.parse(url));
+  //
+  //   if (response.statusCode == 200) {
+  //     try {
+  //       List<dynamic> responseBody = json.decode(response.body);
+  //
+  //       print('Raw Response Body: $responseBody'); // Print the raw response body
+  //
+  //       List<Consultation> consultations = List<Consultation>.from(responseBody
+  //           .map((consultationData) {
+  //         print('Individual Consultation Data: $consultationData'); // Print individual consultation data
+  //         return Consultation.fromJson(consultationData);
+  //       }));
+  //
+  //       print('Consultations List: $consultations'); // Print the final list of consultations
+  //       return consultations;
+  //
+  //     } catch (e) {
+  //       print('Error parsing response: $e');
+  //       throw Exception('Error parsing response: $e');
+  //     }
+  //   } else {
+  //     print('Failed to fetch consultation history. Status Code: ${response.statusCode}');
+  //     throw Exception('Failed to fetch consultation history. Status Code: ${response.statusCode}');
+  //   }
+  // }
+
+  // Future<List<Consultation>> fetchTodayConsultationsPatientSide(int patientID) async {
+  //   final String url = 'http://${MyApp.ipAddress}/teleclinic/getTodayConsultationPatientSide.php?patientID=$patientID';
+  //   final response = await http.get(Uri.parse(url));
+  //   print(specialistID);
+  //   print('Response Status Code: ${response.statusCode}');
+  //   print('Content-Type: ${response.headers['content-type']}');
+  //   print('Response Body: ${response.body}');
+  //
+  //   if (response.statusCode == 200) {
+  //     try {
+  //       dynamic responseBody = json.decode(response.body);
+  //
+  //       // Check if the response is a JSON object
+  //       if (responseBody is Map<String, dynamic> && responseBody.containsKey('data')) {
+  //         List<Consultation> consultations = List<Consultation>.from(responseBody['data']
+  //             .map((consultationData) => Consultation.fromJson(consultationData)));
+  //         return consultations;
+  //       } else {
+  //         print('Unexpected response format. Body is not a JSON object.');
+  //         return [];
+  //       }
+  //
+  //     } catch (e) {
+  //       print('Error parsing response: $e');
+  //       throw Exception('Error parsing response: $e');
+  //     }
+  //   } else {
+  //     print('Failed to fetch today\'s consultations. Status Code: ${response.statusCode}');
+  //     throw Exception('Failed to fetch today\'s consultations. Status Code: ${response.statusCode}');
+  //   }
+  // }
+  //
+  // Future<List<Consultation>> fetchPatientConsultation(int patientID) async {
+  //   final String url =
+  //       'http://${MyApp.ipAddress}/teleclinic/patientConsultationHistory.php?patientID=$patientID';
+  //   final response = await http.get(Uri.parse(url));
+  //
+  //   print('url ${url}');
+  //
+  //   if (response.statusCode == 200) {
+  //     try {
+  //       dynamic responseBody = json.decode(response.body);
+  //
+  //       print('response ${response}');
+  //
+  //       print('result ${response.body}');
+  //
+  //       print('response ${response}');
+  //       print('result ${response.body}');
+  //
+  //       // Check for a specific condition (404) and handle it gracefully
+  //       if (responseBody is Map<String, dynamic> &&
+  //           responseBody.containsKey('error')) {
+  //         print('Resource not found. Status Code: 404');
+  //         return []; // or handle it in a way that makes sense for your app
+  //       }
+  //
+  //       // Rest of your code remains unchanged
+  //       if (responseBody is Map<String, dynamic> &&
+  //           responseBody.containsKey('data')) {
+  //         List<Consultation> consultations = List<Consultation>.from(
+  //             responseBody['data'].map((consultationData) =>
+  //                 Consultation.fromJson(consultationData)));
+  //         print('consultations ${consultations}');
+  //         print('response body ${responseBody}');
+  //         return consultations;
+  //       } else {
+  //         print(
+  //             'Unexpected response history format. Body is not a JSON object.');
+  //         print('url ${url}');
+  //         print('response ${response}');
+  //         print('response body ${responseBody}');
+  //         return [];
+  //       }
+  //     } catch (e) {
+  //       print('Error parsing response: $e');
+  //       throw Exception('Error parsing response: $e');
+  //     }
+  //   } else {
+  //     print(
+  //         'Failed to fetch consultation history. Status Code: ${response.statusCode}');
+  //     throw Exception(
+  //         'Failed to fetch consultation history. Status Code: ${response.statusCode}');
+  //   }
+  // }
+  //
+  // static Future<Uint8List?> getPatientImage(int patientID) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   int specialistID = prefs.getInt("specialistID") ?? 0;
+  //
+  //   RequestController req = RequestController(
+  //     path: "/teleclinic/getPatientImageConsultation.php",
+  //   );
+  //
+  //   // Add both specialistID and patientID as query parameters
+  //   req.path = "${req.path}?specialistID=$specialistID&patientID=$patientID";
+  //
+  //   print('Image URL: ${req.path}');
+  //
+  //   try {
+  //     // Make a GET request using RequestController
+  //     await req.get();
+  //
+  //     if (req.status() == 200) {
+  //       // Image data is available in the response body
+  //       return req.result();
+  //     } else if (req.status() == 404) {
+  //       // Image not found
+  //       print('Image not found for patientID: $patientID');
+  //       return null;
+  //     } else {
+  //       // Handle other status codes
+  //       print('Failed to retrieve image. Status: ${req.status()}');
+  //       return null;
+  //     }
+  //   } catch (error) {
+  //     // Handle any exceptions that might occur during the request
+  //     print('Error retrieving image: $error');
+  //     return null;
+  //   }
+  // }
+}

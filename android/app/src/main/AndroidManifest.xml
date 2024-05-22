@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="fyp"
+        android:label="MediPlexity"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -29,5 +29,20 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDdqnV_yiYt9qUYIuAyBQOwY-QDF59z8ww"/>
+        <meta-data
+            android:name="com.google.android.direction.API_KEY"
+            android:value="AIzaSyC7kR5dr435HsBg3PKkrwDrD1h6V3zrrI4" />
+
+
     </application>
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
+
 </manifest>
