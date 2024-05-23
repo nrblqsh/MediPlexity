@@ -5,6 +5,8 @@ import 'package:fyp/register.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import 'Patient/forgotPasswordScreen.dart';
 import 'Patient/patientHomePage.dart';
@@ -308,13 +310,13 @@ class _LoginScreenState extends State<LoginScreen> {
           await pref.setInt("specialistID", specialistID);
           await pref.setString("logStatus", logStatus);
 
-          // ZegoUIKitPrebuiltCallInvitationService().init(
-          //   appID: MyConstant.appId, // input your AppID
-          //   appSign: MyConstant.appSign, // input your AppSign
-          //   userID: specialistID.toString(),
-          //   userName: specialistName,
-          //   plugins: [ZegoUIKitSignalingPlugin()],
-          // );
+          ZegoUIKitPrebuiltCallInvitationService().init(
+            appID: MyApp.appID, // input your AppID
+            appSign: MyApp.appSign, // input your AppSign
+            userID: specialistID.toString(),
+            userName: specialistName,
+            plugins: [ZegoUIKitSignalingPlugin()],
+          );
 
           Fluttertoast.showToast(
             msg: "Hello, $specialistName",

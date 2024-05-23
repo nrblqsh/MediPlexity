@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "935363189704",
+    "project_id": "mediplexity-4850c",
+    "storage_bucket": "mediplexity-4850c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:935363189704:android:adf0a026a60c923f623efd",
+        "android_client_info": {
+          "package_name": "com.example.fyp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjizL34BpS4btCyQSzD0d-RpW2ECa-NCA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

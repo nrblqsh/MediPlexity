@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fyp/Patient/Telemedicine/viewUpcomingAppointmentforPatientSide.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../../Model/patient.dart';
 import '../../login.dart';
@@ -478,6 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   Navigator.of(context).pop();
 
                                   showSnackBar("Logged out successfully");
+                                  ZegoUIKitPrebuiltCallInvitationService().uninit();
 
                                   Navigator.pushReplacement(
                                     context,
