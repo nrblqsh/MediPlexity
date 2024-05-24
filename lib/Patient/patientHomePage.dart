@@ -2,7 +2,8 @@
 // import 'package:flip_panel_plus/flip_panel_plus.dart';
 // import 'package:flutter/material.dart';
 // import 'package:geolocator/geolocator.dart';
- import 'package:geolocator/geolocator.dart';
+ import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -16,7 +17,11 @@ import 'package:lottie/lottie.dart';
 // import 'package:onesignal_flutter/onesignal_flutter.dart';
 //
 import 'package:flutter/material.dart';
+import 'package:zego_uikit/zego_uikit.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
+import '../ZegoCloud_VideoCall/common.dart';
 import '../main.dart';
 import 'Map/viewMap.dart';
 import 'Medicine_Recommender/medicine recommender.dart';
@@ -650,6 +655,36 @@ class _HomePageState extends State<HomePage> {
       patientID = widget.patientID;
     });
 
+    ZegoUIKitPrebuiltCallInvitationService().init(
+      appID: MyApp.appID /*input your AppID*/,
+      appSign:  MyApp.appSign,
+      userID:  patientID.toString(),
+      userName: patientName,
+      notifyWhenAppRunningInBackgroundOrQuit: true,
+      androidNotificationConfig: ZegoAndroidNotificationConfig(
+        channelID: "zego_channel",
+       // channelName: "Call Notification",
+        sound: "notification",
+        icon: "notification_icon",
+      ),
+      plugins: [
+        ZegoUIKitSignalingPlugin(),
+      ],
+      requireConfig: (ZegoCallInvitationData data)
+      {
+        final config = (data.invitees.length > 1)?ZegoCallType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+            : ZegoCallType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+
+        config.avatarBuilder = customAvatarBuilder;
+        config.topMenuBarConfig.isVisible = true;
+        config.topMenuBarConfig.buttons.insert(0, ZegoMenuBarButtonName.minimizingButton);
+        return config;
+      },
+    );
 
     pages = [
       HomePage(patientID: patientID, phone: phone, patientName: patientName),
@@ -672,6 +707,68 @@ class _HomePageState extends State<HomePage> {
   //
   //
   //
+
+  void onSendCallInvitationFinished(
+      String code,
+      String message,
+      List<String> errorInvitees,
+      ) {
+    if (errorInvitees.isNotEmpty) {
+      String userIDs = "";
+      for (int index = 0; index < errorInvitees.length; index++) {
+        if (index >= 5) {
+          userIDs += '... ';
+          break;
+        }
+
+        var userID = errorInvitees.elementAt(index);
+        userIDs += userID + ' ';
+      }
+      if (userIDs.isNotEmpty) {
+        userIDs = userIDs.substring(0, userIDs.length - 1);
+      }
+
+      var message = 'User doesn\'t exist or is offline: $userIDs';
+      if (code.isNotEmpty) {
+        message += ', code: $code, message:$message';
+      }
+      showToast(
+        message,
+        position: StyledToastPosition.top,
+        context: context,
+      );
+    } else if (code.isNotEmpty) {
+      showToast(
+        'code: $code, message:$message',
+        position: StyledToastPosition.top,
+        context: context,
+      );
+    }
+  }
+
+
+  Widget sendCallButton({
+    required String patientID,
+    required String patientName,
+
+    void Function(String code, String message, List<String>)? onCallFinished,
+  }) {
+    return ZegoSendCallInvitationButton(
+      isVideoCall: true,
+      invitees: [
+        ZegoUIKitUser(
+          id: patientID,
+          name: patientName,
+
+        ),
+      ],
+      resourceID: "zego_data",
+      iconSize: const Size(40, 40),
+      buttonSize: const Size(50, 50),
+      onPressed: onCallFinished,
+    );
+  }
+
   Future<void> getUserLocation() async {
     await Geolocator.requestPermission().then((value) {
       if (value == LocationPermission.denied) {

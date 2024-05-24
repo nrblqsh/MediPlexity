@@ -8,18 +8,23 @@ import 'package:fyp/testHeartRate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:faker/faker.dart';
+
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 // import 'package:onesignal_flutter/onesignal_flutter.dart';
 //
 import 'package:flutter/material.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '../Model/consultation.dart';
 import 'package:intl/intl.dart';
 
+import '../ZegoCloud_VideoCall/common.dart';
 import 'Telemedicine_Consultation/viewUpcomingAppointmentforSpecialistSide.dart';
 
 
@@ -436,69 +441,17 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                                       try {
                                                                                        // actionButtion(true);
                                                                                         print("masuk");
+                                                                                        sendCallButton(
+                                                                                          patientID: "1",
+                                                                                           patientName: consult.patientName.toString(),
+                                                                                           // or false based on whether it's a video call or not
+                                                                                          onCallFinished: (code, message, errorInvitees) {
+                                                                                            // Handle call initiation result here
+                                                                                            onSendCallInvitationFinished(code, message, errorInvitees);
+                                                                                          },
+                                                                                        );
 
-
-
-                                                                                        // ZegoSendCallInvitationButton actionButton(bool isVideo)=>
-                                                                                        //     ZegoSendCallInvitationButton(
-                                                                                        //       isVideoCall:isVideo,
-                                                                                        //       resourceID:"zegouikit_call",
-                                                                                        //       invitees: [
-                                                                                        //         ZegoUIKitUser(id: "1",
-                                                                                        //             name: "test")
-                                                                                        //       ],
-                                                                                        //     );
-                                                                                        //
-                                                                                        //
-                                                                                        // actionButton(true);
-
-                                                                                        // updateStatustoGetReadytoCall(consultationID);
-                                                                                        // Navigator.push(
-                                                                                        //   context,
-                                                                                        //   MaterialPageRoute(
-                                                                                        //     builder: (context) => MyCall(
-                                                                                        //       callID: dynamicCallID,
-                                                                                        //       id: specialistIDtoString,
-                                                                                        //       name: specialistName,
-                                                                                        //       roleId: 1,
-                                                                                        //       consultationID: consultationID,
-                                                                                        //     ),
-                                                                                        //   ),
-                                                                                        //
-                                                                                        // );
-                                                                                        // _sendNotification( pd);
-
-
-
-
-
-                                                                                        //await sendCallNotificationWithInAppActions(patientIDforSendingNotification, dynamicCallID);
-
-                                                                                        // Navigator.push(
-                                                                                        //   context,
-                                                                                        //   MaterialPageRoute(
-                                                                                        //     builder: (context) => MyCall(
-                                                                                        //       callID: dynamicCallID,
-                                                                                        //       id: specialistIDtoString,
-                                                                                        //       name: specialistName,
-                                                                                        //       roleId: 1,
-                                                                                        //     ),
-                                                                                        //   ),
-                                                                                        // );
-                                                                                        // //save callid dulu dlm db
-                                                                                      //  String? fcmToken = await getFCMTokenfromPatient(consultationID);
-                                                                                       // print("fcm token dalam specialist $fcmToken");
-
-
-                                                                                        // if (fcmToken != null) {
-                                                                                        //
-                                                                                        //
-                                                                                        //   //  await sendFCMNotification(fcmToken, dynamicCallID, specialistID, specialistName);
-                                                                                        // } else {
-                                                                                        //   print('FCM token is null. Cannot send notification.');
-                                                                                        // }
-
-
+                                                                                        print("test");
                                                                                       } catch (e) {
                                                                                         print('Error during sen: $e');
                                                                                       }
@@ -635,6 +588,90 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
   }
 
 
+  // Widget sendCallInvitationButton({
+  //   required bool isVideoCall,
+  //   required List<String> inviteeUserIDs,
+  //   void Function(String code, String message, List<String> errorInvitees)? onCallFinished,
+  // }) {
+  //   // Convert list of user IDs to list of ZegoUIKitUser objects
+  //   List<ZegoUIKitUser> invitees = inviteeUserIDs.map((userID) {
+  //     return ZegoUIKitUser(id: userID, name: 'user_$userID');
+  //   }).toList();
+  //
+  //   return ZegoSendCallInvitationButton(
+  //     isVideoCall: isVideoCall,
+  //     invitees: invitees,
+  //     resourceID: "zego_data",
+  //     iconSize: const Size(40, 40),
+  //     buttonSize: const Size(50, 50),
+  //     onPressed: onCallFinished, // Handle the result of sending the invitation
+  //   );
+  // }
+
+  void onSendCallInvitationFinished(
+      String code,
+      String message,
+      List<String> errorInvitees,
+      ) {
+    if (errorInvitees.isNotEmpty) {
+      String userIDs = "";
+      for (int index = 0; index < errorInvitees.length; index++) {
+        if (index >= 5) {
+          userIDs += '... ';
+          break;
+        }
+
+        var userID = errorInvitees.elementAt(index);
+        userIDs += userID + ' ';
+      }
+      if (userIDs.isNotEmpty) {
+        userIDs = userIDs.substring(0, userIDs.length - 1);
+      }
+
+      var message = 'User doesn\'t exist or is offline: $userIDs';
+      if (code.isNotEmpty) {
+        message += ', code: $code, message:$message';
+      }
+      showToast(
+        message,
+        position: StyledToastPosition.top,
+        context: context,
+      );
+    } else if (code.isNotEmpty) {
+      showToast(
+        'code: $code, message:$message',
+        position: StyledToastPosition.top,
+        context: context,
+      );
+    }
+  }
+
+  Widget sendCallButton({
+    required String patientID,
+    required String patientName,
+
+    void Function(String code, String message, List<String>)? onCallFinished,
+  }) {
+    return ZegoSendCallInvitationButton(
+      isVideoCall: true,
+      invitees: [
+        ZegoUIKitUser(
+          id: patientID,
+          name: patientName,
+
+        ),
+      ],
+      resourceID: "zego_data",
+
+      iconSize: const Size(40, 40),
+      buttonSize: const Size(50, 50),
+      onPressed: onCallFinished,
+    );
+  }
+
+
+
+
 
   Future<void> _loadData() async {
 
@@ -648,21 +685,39 @@ setState(() {
   print("specialis name ${specialistName}");
 });
 
-    //   print("apptpt$patientID");
-    //
-    //
-    //   List<Consultation> consultations = await _fetchTodayConsultationsPatientSide(patientID);
-    //
-    //   print('Fetched Consultations: $consultations');
-    //
-    //
+
+    ZegoUIKitPrebuiltCallInvitationService().init(
+      appID: MyApp.appID /*input your AppID*/,
+      appSign:  MyApp.appSign,
+      userID:  specialistID.toString(),
+      userName: specialistName,
+      notifyWhenAppRunningInBackgroundOrQuit: true,
+      androidNotificationConfig: ZegoAndroidNotificationConfig(
+        channelID: "zego_channel",
+      //  channelName: "Call Notification",
+        sound: "notification",
+        icon: "notification_icon",
+      ),
+      plugins: [
+        ZegoUIKitSignalingPlugin(),
+      ],
+      requireConfig: (ZegoCallInvitationData data)
+      {
+        final config = (data.invitees.length > 1)?ZegoCallType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+            : ZegoCallType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+
+        config.avatarBuilder = customAvatarBuilder;
+        config.topMenuBarConfig.isVisible = true;
+        config.topMenuBarConfig.buttons.insert(0, ZegoMenuBarButtonName.minimizingButton);
+        return config;
+      },
+    );
+
   }
-
-  //
-  //
-  //
-  //
-
 
   Future<List<Consultation>> getTodayAppointmentforSpecialist(
       int specialistID) async {
