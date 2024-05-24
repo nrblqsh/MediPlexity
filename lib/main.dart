@@ -12,7 +12,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
+  final prefs = await SharedPreferences.getInstance();
+  final cacheUserID = prefs.get(cacheUserIDKey) as String? ?? '';
+  if (cacheUserID.isNotEmpty) {
+    currentUser.id = cacheUserID;
+    currentUser.name = 'user_$cacheUserID';
+  }
   /// 1.1.2: set navigator key to ZegoUIKitPrebuiltCallInvitationService
   ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
 
@@ -34,6 +39,20 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: const LoginScreen(),
       navigatorKey: navigatorKey,
+      builder: (BuildContext context, Widget? child)
+      {
+        return Stack(
+          children: [
+            child!,
+            ZegoUIKitPrebuiltCallMiniOverlayPage(
+                contextQuery: ()
+                    {
+                      return widget.navigatorKey.currentState!.context;
+                    }
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -46,7 +65,7 @@ class MyApp extends StatefulWidget {
     Key? key,
   }) : super(key: key);
 
-  static final String ipAddress = "10.131.73.62";
+  static final String ipAddress = "192.168.8.108";
   static final int appID = 746048871;
   static final String appSign = "7c1a48bfdd98bb2757f61194bd833b67f545aa254d2761955fb6dc26fd61a2f1";
 
@@ -75,3 +94,22 @@ class MyApp extends StatefulWidget {
     );
   }
 }
+
+
+
+class UserInfo {
+  String id = '';
+  String name = '';
+
+  UserInfo({
+    required this.id,
+    required this.name,
+  });
+
+  bool get isEmpty => id.isEmpty;
+
+  UserInfo.empty();
+}
+
+UserInfo currentUser = UserInfo.empty();
+const String cacheUserIDKey = 'cache_user_id_key';

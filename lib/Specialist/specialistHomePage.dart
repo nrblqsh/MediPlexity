@@ -290,6 +290,15 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                   ),
                                                                 ),
 
+                                                      sendCallButton(
+                                                        patientID: "1",
+                                                        patientName: "test",
+                                                        // or false based on whether it's a video call or not
+                                                        onCallFinished: (code, message, errorInvitees) {
+                                                          // Handle call initiation result here
+                                                          onSendCallInvitationFinished(code, message, errorInvitees);
+                                                        },
+                                                      ),
                                                                 Container(
                                                                   width: 150,
                                                                   height: 200,// Adjust the width as needed
@@ -441,6 +450,7 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                                       try {
                                                                                        // actionButtion(true);
                                                                                         print("masuk");
+
                                                                                         sendCallButton(
                                                                                           patientID: "1",
                                                                                            patientName: consult.patientName.toString(),

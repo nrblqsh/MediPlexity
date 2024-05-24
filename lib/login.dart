@@ -289,10 +289,13 @@ class _LoginScreenState extends State<LoginScreen> {
               userName: patientName,
               notifyWhenAppRunningInBackgroundOrQuit: true,
               androidNotificationConfig: ZegoAndroidNotificationConfig(
-                channelID: "nanti tengok balik",
+                channelID: "ZegoUIKit",
                 channelName: "Call Notification",
-                sound: "notification",
-                icon: "notification_icon",
+                sound: "call",
+                icon: "call",
+              ),
+              iOSNotificationConfig: ZegoIOSNotificationConfig(
+                systemCallingIconName: 'CallKitIcon'
               ),
               plugins: [
                 ZegoUIKitSignalingPlugin(),
@@ -348,10 +351,13 @@ class _LoginScreenState extends State<LoginScreen> {
             userName: specialistName,
             notifyWhenAppRunningInBackgroundOrQuit: true,
             androidNotificationConfig: ZegoAndroidNotificationConfig(
-              channelID: "nanti tengok balik",
+              channelID: "ZegoUIKit",
               channelName: "Call Notification",
-              sound: "notification",
-              icon: "notification_icon",
+              sound: "call",
+              icon: "call",
+            ),
+            iOSNotificationConfig: ZegoIOSNotificationConfig(
+                systemCallingIconName: 'CallKitIcon'
             ),
             plugins: [
               ZegoUIKitSignalingPlugin(),
@@ -370,7 +376,6 @@ class _LoginScreenState extends State<LoginScreen> {
               config.topMenuBarConfig.buttons.insert(0, ZegoMenuBarButtonName.minimizingButton);
               return config;
             },
-
           );
           
           Fluttertoast.showToast(
