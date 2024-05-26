@@ -352,13 +352,7 @@ Widget buildPointForm(String title, List<String> items) {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,// Align items to the top
             children: <Widget>[
-          //   Text(
-          //   "Enter your symptoms ",
-          //   style: GoogleFonts.roboto(
-          //     fontWeight: FontWeight.bold,
-          //     textStyle: const TextStyle(fontSize: 20, color: Colors.black),
-          //   ),
-          // ),
+
 
 
 

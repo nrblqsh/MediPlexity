@@ -24,7 +24,9 @@ import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../Model/consultation.dart';
 import 'package:intl/intl.dart';
 
+import '../ZegoCloud_VideoCall/TabControllerPrescriptionForVideoCall.dart';
 import '../ZegoCloud_VideoCall/common.dart';
+import '../ZegoCloud_VideoCall/videoCall.dart';
 import 'Telemedicine_Consultation/viewUpcomingAppointmentforSpecialistSide.dart';
 
 
@@ -450,16 +452,36 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                                       try {
                                                                                        // actionButtion(true);
                                                                                         print("masuk");
+                                                                                        Navigator.push(
+                                                                                          context,
+                                                                                          MaterialPageRoute(
+                                                                                            builder: (context) => ButtonCallwithTabControllerPrescription(patientID:consult.patientID,
+                                                                                                patientName:consult.patientName.toString(),
+                                                                                                consultationID:int.parse(consult.consultationID.toString()),
+                                                                                                roleID:1, specialistID:consult.specialistID),
 
-                                                                                        sendCallButton(
-                                                                                          patientID: "1",
-                                                                                           patientName: consult.patientName.toString(),
-                                                                                           // or false based on whether it's a video call or not
-                                                                                          onCallFinished: (code, message, errorInvitees) {
-                                                                                            // Handle call initiation result here
-                                                                                            onSendCallInvitationFinished(code, message, errorInvitees);
-                                                                                          },
+                                                                                          ),
                                                                                         );
+                                                                                        // Navigator.push(
+                                                                                        //   context,
+                                                                                        //   MaterialPageRoute(
+                                                                                        //     builder: (context) => VideoCall(
+                                                                                        //         patientID:consult.patientID,
+                                                                                        //         patientName:consult.patientName.toString(),
+                                                                                        //     consultationID:int.parse(consult.consultationID.toString()),
+                                                                                        //         roleID:1, specialistID:consult.specialistID),
+                                                                                        //   ),
+                                                                                        // );
+
+                                                                                        // sendCallButton(
+                                                                                        //   patientID: "1",
+                                                                                        //    patientName: consult.patientName.toString(),
+                                                                                        //    // or false based on whether it's a video call or not
+                                                                                        //   onCallFinished: (code, message, errorInvitees) {
+                                                                                        //     // Handle call initiation result here
+                                                                                        //     onSendCallInvitationFinished(code, message, errorInvitees);
+                                                                                        //   },
+                                                                                        // );
 
                                                                                         print("test");
                                                                                       } catch (e) {
@@ -656,26 +678,78 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
     }
   }
 
+  // Widget sendCallButton({
+  //   required String patientID,
+  //   required String patientName,
+  //
+  //   void Function(String code, String message, List<String>)? onCallFinished,
+  // }) {
+  //   return ZegoSendCallInvitationButton(
+  //     isVideoCall: true,
+  //     invitees: [
+  //       ZegoUIKitUser(
+  //         id: patientID,
+  //         name: patientName,
+  //
+  //       ),
+  //     ],
+  //     resourceID: "zego_data",
+  //
+  //     iconSize: const Size(40, 40),
+  //     buttonSize: const Size(50, 50),
+  //     onPressed: onCallFinished,
+  //   );
+  // }
+
+
   Widget sendCallButton({
     required String patientID,
     required String patientName,
-
     void Function(String code, String message, List<String>)? onCallFinished,
   }) {
-    return ZegoSendCallInvitationButton(
-      isVideoCall: true,
-      invitees: [
-        ZegoUIKitUser(
-          id: patientID,
-          name: patientName,
+    return GestureDetector(
+      onTap: () async {
+        // // Navigate to ConsultationPrescription page first
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ConsultationPrescription(
+        //       // Pass necessary parameters if needed
+        //     ),
+        //   ),
+        // );
 
-        ),
-      ],
-      resourceID: "zego_data",
+        // Then navigate to VideoCall page
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoCall(
+              patientID: int.parse(patientID),
+              patientName: patientName,
+              consultationID: 1, // Replace with actual consultation ID
+              roleID: 1, // Replace with actual role ID
+              specialistID: 1, // Replace with actual specialist ID
+            ),
+          ),
+        );
 
-      iconSize: const Size(40, 40),
-      buttonSize: const Size(50, 50),
-      onPressed: onCallFinished,
+        // After navigation, call the onCallFinished callback if provided
+        if (onCallFinished != null) {
+          onCallFinished("code", "message", ["errorInvitees"]);
+        }
+      },
+      child: ZegoSendCallInvitationButton(
+        isVideoCall: true,
+        invitees: [
+          ZegoUIKitUser(
+            id: patientID,
+            name: patientName,
+          ),
+        ],
+        resourceID: "zego_data",
+        iconSize: const Size(40, 40),
+        buttonSize: const Size(50, 50),
+      ),
     );
   }
 
