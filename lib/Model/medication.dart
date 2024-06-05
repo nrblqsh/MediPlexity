@@ -32,7 +32,7 @@ class Medication {
     consultationID: json["consultationID"] ?? 0,
     medicationID: json["medicationID"] ?? 0,
     medGeneral: json["MedGeneral"],
-    medForm: json["medForm"],
+    medForm: json["MedForm"],
     consultationDateTime: json['consultationDateTime'] != null
         ? DateTime.tryParse(json['consultationDateTime'])
         : DateTime.parse('0000-00-00'),
@@ -58,6 +58,46 @@ class Medication {
     consultationDateTimeFinished.toString(),
     "consultationSymptom":consultationSymptom
   };
+
+
+  static Future<List<Medication>> loadAllMedications() async {
+    // Instantiate RequestController
+    RequestController req = RequestController(
+      path: "/mediplexity/getMedicineforVideoConsultation.php",
+    );
+
+    // Make a GET request
+    print("Request URL: ${req.path}");
+
+    await req.get();
+    print("Response Status: ${req.status()}");
+    print("Response Body: ${req.result()}");
+
+    if (req.status() == 200 && req.result() != null) {
+      dynamic resultData = req.result();
+
+      print("Raw JSON Data: $resultData");
+
+      try {
+        if (resultData is Map<String, dynamic> && resultData.containsKey('data')) {
+          // Handle the case when the result is an array or a single object
+          print("1");
+          var dataList = resultData['data'] as List<dynamic>;
+          return dataList.map((item) => Medication.fromJson(item)).toList();
+        } else {
+          print('Unexpected response format. Body is not a JSON object.');
+          return [];
+        }
+      } catch (e) {
+        print('Error parsing response: $e');
+        return [];
+      }
+    } else {
+      // Handle the case when the request failed
+      print('Error loading patients: ${req.status()}');
+      return [];
+    }
+  }
 
   static Future<List<Medication>> getConsultationMedicationDuringVideoCallforSpecialist(
       int patientID) async {

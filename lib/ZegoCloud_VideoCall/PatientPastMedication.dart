@@ -9,6 +9,7 @@ class PatientPastMedication extends StatefulWidget {
   final int specialistID;
 
   const PatientPastMedication({
+    Key? key,
     required this.patientID,
     required this.specialistID,
   });
@@ -59,7 +60,7 @@ class _PatientPastMedicationState extends State<PatientPastMedication> {
                 Text(
                   _patientName,
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

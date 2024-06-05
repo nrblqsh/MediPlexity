@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:fyp/ZegoCloud_VideoCall/PatientPastMedication.dart';
+import 'package:fyp/ZegoCloud_VideoCall/doPrediction.dart';
 import 'package:fyp/ZegoCloud_VideoCall/videoCall.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
@@ -33,7 +34,9 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
   late int specialistID;
 
   late TabController _tabController; // Add TabController
+  final PageStorageBucket bucket = PageStorageBucket();
 
+  List<String> prescriptionSymptoms = ['']; // Store symptoms for prescription
 
   @override
   void initState() {
@@ -43,7 +46,8 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
     consultationID = widget.consultationID;
     roleID = widget.roleID;
     specialistID = widget.specialistID;
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
@@ -53,7 +57,7 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
     return Scaffold(
       body: DefaultTabController(
 
-      length: 2,
+      length: 3,
         child:Scaffold(
 
       appBar: AppBar(
@@ -72,7 +76,7 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
           ],
         ),
         bottom: TabBar(
-
+          controller: _tabController,
           unselectedLabelColor: Colors.orangeAccent,
           labelColor: Colors.blueGrey,
           //
@@ -82,51 +86,53 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
             CustomTab(
               text: 'Medical Record',
             ),
+
+            CustomTab(
+              text: 'Do Prediction',
+            ),
             CustomTab(
               text: 'Vital Info History',
             ),
+
           ],
         ),
       ),
 
-      body: TabBarView(
-        children: [
-          ConsultationPrescription(
-            patientID:patientID,
-            patientName:patientName,
-            consultationID: consultationID,
-            specialistID: specialistID,
-            roleID: roleID
-          ),
-          PatientPastMedication(
+      body: PageStorage(
+        bucket: bucket,
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            ConsultationPrescription(
+              key:PageStorageKey('Medical Record'),
               patientID:patientID,
+              patientName:patientName,
+              consultationID: consultationID,
               specialistID: specialistID,
-              ),
+              roleID: roleID,
+            ),
+            DoPrediction(
+
+                key:PageStorageKey('Do Prediction'),
+                patientID:patientID,
+                patientName:patientName,
+                consultationID: consultationID,
+                specialistID: specialistID,
+                roleID: roleID,
 
 
-        ],
+            ),
+            PatientPastMedication(
+              key:PageStorageKey('Vital Info History'),
+                patientID:patientID,
+                specialistID: specialistID,
+                ),
+
+
+          ],
+        ),
       ),
 
-      // body: Center(
-      //   child: isCallButtonClicked
-      //       ? ElevatedButton(
-      //     onPressed: () {
-      //       // Define the action for the new button here
-      //      print("tah");
-      //     },
-      //     child: Text("Go to Video Call"),
-      //   )
-      //       : sendCallButton(
-      //     patientID: patientID.toString(),
-      //     patientName: patientName,
-      //     onCallFinished: (code, message, errorInvitees) {
-      //       onSendCallInvitationFinished(code, message, errorInvitees);
-      //       setState(() {
-      //         isCallButtonClicked = true; // Update state to hide the call button
-      //       });
-      //     },
-      //   ),
-      // ),
     ),
       ),
     );
