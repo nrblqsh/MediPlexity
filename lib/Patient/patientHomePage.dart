@@ -353,11 +353,8 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            SettingsScreen(
-                                              patientID: patientID,)),
-                                  );
+                                      MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID, patientName: patientName,phone: phone,)));
+
                                 },
                                 child: Column(
                                   children: [
@@ -581,7 +578,7 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          MedicalRecordScreen(patientID: patientID)));
+                          MedicalRecordScreen(patientID: patientID, patientName: patientName, phone: phone,)));
             } else if (index == 1) {
               Navigator.push(
                   context,
@@ -596,7 +593,7 @@ class _HomePageState extends State<HomePage> {
                       builder: (context) => ViewUpcomingAppointmentforPatientSide(patientID: patientID,)));
             } else if (index == 4) {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID,)));
+                  MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID, patientName: patientName,phone: phone,)));
             }
           },
           items: [

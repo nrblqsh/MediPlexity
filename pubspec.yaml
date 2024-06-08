@@ -65,6 +65,7 @@ dependencies:
   flutter_styled_toast: ^2.2.1
   faker: ^2.1.0
   intl: ^0.18.1
+  flutter_stripe: ^10.1.1
 
 
 

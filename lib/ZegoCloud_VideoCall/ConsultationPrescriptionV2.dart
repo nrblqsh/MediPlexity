@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:fyp/Model/medication.dart';
+import 'package:fyp/Specialist/specialistHomePage.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:http/http.dart' as http;
-
+import 'dart:async';
 import '../Controller/requestController.dart';
+import '../Model/consultation.dart';
 import '../Model/patient.dart';
 
 class ConsultationPrescription extends StatefulWidget {
@@ -16,6 +19,8 @@ class ConsultationPrescription extends StatefulWidget {
   final int consultationID;
   final int roleID;
   final int specialistID;
+  final String specialistName;
+  final String phoneSpecialist;
 
   const ConsultationPrescription({
     Key? key,
@@ -24,6 +29,8 @@ class ConsultationPrescription extends StatefulWidget {
     required this.consultationID,
     required this.roleID,
     required this.specialistID,
+    required this.phoneSpecialist,
+    required this.specialistName
   }) : super(key:key);
 
   @override
@@ -42,7 +49,10 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
   String _icNum = "";
   String _gender = "";
   int _age = 0;
+  String consultationStatus = "";
 
+  late String specialistName;
+  late String phoneSpecialist;
 
   int? _medID ;
   String? _medGeneral;
@@ -51,6 +61,7 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
   int? _medicationID ;
   String? _medInstruction;
 
+  List<int> medIDs = []; // List to store MedIDs
   List<Medication> medications = [];
   List<String> originalMedicationNames = [];
   List<FocusNode> focusNodes = [];
@@ -65,6 +76,8 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
   List<String> medicineForms = ['Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Cream', 'Ointment', 'Drops', 'Patch', 'Inhaler'];
   List<TextEditingController> medInstructionControllers = [];
 
+bool showAddMedText = false;
+TextEditingController consultationFeesController = TextEditingController();
   late List<bool> showSuggestion = [false];
   bool showMedFormSuggestion =false;
   late List<bool> showDosageTextField = [false];
@@ -73,6 +86,7 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
   late List<bool> showMedicationInstructionField = [false];
 
 
+  Timer? _debounce; // Timer variable for debouncing
 
   List<String> symptomsList = [];
   List<String> serverSymptomsList = [];
@@ -93,6 +107,8 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
     consultationID = widget.consultationID;
     roleID = widget.roleID;
     specialistID = widget.specialistID;
+    specialistName = widget.specialistName;
+    phoneSpecialist = widget.phoneSpecialist;
     _loadInfoPatient(patientID);
     _loadAllMedicine();
     saveSymptoms();
@@ -108,7 +124,7 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
     showMedFormTextField = [false];
     dosageController = [TextEditingController()];
     medFormController = [TextEditingController()];
-
+    showAddMedText = false;
   }
 
 
@@ -200,12 +216,14 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
       showMedicationInstructionField.add(false);
       medicationFormSuggestions.add([...medicineForms]); // Assuming medicineForms is a list of medicine form suggestions
 
-    });
+
+          });
   }
 
 
   void addFormandDosage() {
     setState(() {
+
       showDosageTextField.add(false);
       showMedFormTextField.add(false);
       dosageController.add(TextEditingController());
@@ -220,7 +238,6 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
   void removeMedication(int index) {
     setState(() {
       if (medicationControllers.length > 1) {
-
         medicationControllers[index].dispose();
         medicationControllers.removeAt(index);
         dosageController[index].dispose();
@@ -392,9 +409,7 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                                   showMedicationInstructionField[index] = true;
                                   showMedFormTextField[index] = false;
                                   showDosageTextField[index] = false;
-
-
-                                  showSuggestion[index] = true;
+                                  showAddMedText=false;                                  showSuggestion[index] = true;
                                 });
                               },
                               onChanged: (value) {
@@ -406,6 +421,19 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                                         .where((name) => name.toLowerCase().contains(value.toLowerCase()))
                                         .toList();
                                   }
+
+                                  if(_debounce?.isActive??false) _debounce!.cancel();
+                                  _debounce = Timer(Duration(milliseconds: 2000), () {
+                                    if(!originalMedicationNames.contains(value))
+                                    {
+                                      showAddMedText = true;                                      print("taha");
+                                    }
+                                    else{
+                                      showAddMedText=false;
+                                    }
+                                  }
+                                  );
+
                                 });
                               },
                               onSubmitted: (value) {
@@ -434,6 +462,34 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                               ),
                             ),
                           ),
+
+                          if (index == medicationControllers.length - 1 && showAddMedText)
+                            GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  print('Index: $index, medicationFormSuggestions length: ${medicationFormSuggestions.length}');
+                                  if (medicationFormSuggestions.isNotEmpty && index < medicationFormSuggestions.length) {
+                                    if (index == medicationControllers.length - 1 && medicationControllers[index].text.isNotEmpty) {
+                                      addFormandDosage();
+                                    }
+                                    showSuggestion[index] = false;
+                                    showMedicationInstructionField[index] = true;
+                                    showDosageTextField[index] = true;
+                                    if (!showMedFormTextField[index]) {
+                                      showMedFormTextField[index] = true; // Show dosage field for the submitted medication
+                                    }
+                                  }
+
+                                });
+                              },
+                              child: Text(
+                                'Add Medication',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
                           IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
@@ -445,6 +501,7 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                               icon: Icon(Icons.add),
                               onPressed: addMedication,
                             ),
+
                         ],
                       ),
                       if (showSuggestion[index] && medicationNames.isNotEmpty)
@@ -475,6 +532,7 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                                   decoration: InputDecoration(
                                     labelText: 'Dosage (mg/ml)',
                                   ),
+                                  keyboardType: TextInputType.number,
                                 ),
                               ),
                             SizedBox(width: 10),
@@ -537,12 +595,16 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                             ),
                             maxLines: null
                           ),
+
+
+
                     ],
                   );
                 }),
               ),
 
 
+              SizedBox(height:20),
               TextField(
 
                 controller: treatmentController,
@@ -550,20 +612,89 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
                 maxLines: null,
               ),
 
-              ElevatedButton(onPressed: (){
-                printEnteredData();
-              },
-                  child: Text("press")),
+              TextField(
+                  controller: consultationFeesController,
+                  decoration: InputDecoration(
+                    labelText: 'Consultation Fees (RM)',
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true), // Allow decimal input
+                ),
+
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Confirmation'),
+                        content: Text('Are you sure you want to save prescription details for this patient?'),
+                        actions: [
+                          TextButton(
+                            child: Text('No'),
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Dismiss the dialog
+                            },
+                          ),
+                          TextButton(
+                            child: Text('Yes'),
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                  context, MaterialPageRoute(
+                                  builder: (context) =>
+                                      SpecialistHomePage(
+                                          phone: phoneSpecialist,
+                                          specialistName: specialistName,
+                                          specialistID: specialistID)));
+                            }// Dismiss the dialog                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: Text('press'),
+              ),
+
               SizedBox(height: 16),
               if (isCallButtonClicked)
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      // Handle save button press
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Confirmation'),
+                            content: Text('Are you sure you want to save prescription details for this patient?'),
+                            actions: [
+                              TextButton(
+                                child: Text('No'),
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Dismiss the dialog
+                                },
+                              ),
+                              TextButton(
+                                child: Text('Yes'),
+                                onPressed: () async{
+                                  Navigator.of(context).pop();
+                                  bool success = await printEnteredData();
+                                  if(success){
+                                    Navigator.pushReplacement(context, MaterialPageRoute(
+                                        builder: (context) => SpecialistHomePage(
+                                            phone: phoneSpecialist, specialistName: specialistName, specialistID: specialistID)));// Dismiss the dialog
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     child: Text('Save'),
                   ),
                 ),
+              SizedBox(height: 100),
+
               SizedBox(height: 100),
 
             ],
@@ -603,37 +734,129 @@ class _ConsultationPrescriptionState extends State<ConsultationPrescription> wit
     }
   }
 
-  void printEnteredData() {
-    print("Entered Treatment: ${treatmentController.text}");
+  // void printEnteredData() {
+  //   print("Entered Treatment: ${treatmentController.text}");
+  //
+  //   for (int i = 0; i < medicationControllers.length; i++) {
+  //     List<String> parts = medicationControllers[i].text.split(' - ');
+  //     if (parts.length >= 3) {
+  //       String name = parts[0];
+  //       String form = parts[1];
+  //       String dosage = parts[2];
+  //
+  //       print("Entered Medication ${i + 1} Name: $name");
+  //       print("Entered Medication ${i + 1} Form: $form");
+  //       print("Entered Medication ${i + 1} Dosage: $dosage");
+  //       print("Entered Instructions ${i + 1}: ${medInstructionControllers[i].text}");
+  //     } else {
+  //       String name = medicationControllers[i].text;
+  //       String dosage = dosageController[i].text;
+  //       String form = medFormController[i].text;
+  //       print("Entered Medication ${i + 1} Name: $name");
+  //       print("Entered Medication ${i + 1} form: $form");
+  //       print("Entered Medication ${i + 1} dosage: $dosage");
+  //       print("Entered Instructions ${i + 1}: ${medInstructionControllers[i].text}");
+  //
+  //
+  //     }
+  //   }
+  //
+  //   for (int i = 0; i < symptoms.length; i++) {
+  //     print("Entered Symptom ${i + 1}: ${symptomControllers[i].text}");
+  //   }
+  //
+  // }
 
-    for (int i = 0; i < medicationControllers.length; i++) {
-      List<String> parts = medicationControllers[i].text.split(' - ');
-      if (parts.length >= 3) {
-        String name = parts[0];
-        String form = parts[1];
-        String dosage = parts[2];
+
+  Future<bool> printEnteredData() async {
+    try {
+      String consultationStatus = "Done";
+
+      print("consultationID: ${consultationID}");
+      print("Entered Treatment: ${treatmentController.text}");
+
+      List<int> medIDs = []; // List to store MedIDs
+      List<String> medInstructions = [];
+
+      for (int i = 0; i < medicationControllers.length; i++) {
+        String name, form, dosage;
+
+        List<String> parts = medicationControllers[i].text.split(' - ');
+        if (parts.length >= 3) {
+          name = parts[0];
+          form = parts[1];
+          dosage = parts[2];
+          try {
+            int medID = await Medication.getExistingMedID(name, form, dosage);
+            if (medID != -1) {
+              medIDs.add(medID);
+              medInstructions.add(medInstructionControllers[i].text);
+              print("Medication MedID for $name, $form, $dosage is: $medID");
+            } else {
+              print("Failed to get MedID for $name, $form, $dosage");
+            }
+          } catch (e) {
+            print("Failed to get MedID: $e");
+          }
+        } else {
+          name = medicationControllers[i].text;
+          dosage = dosageController[i].text;
+          form = medFormController[i].text;
+
+          try {
+            int medID = await Medication.getMedID(name, form, dosage);
+            if (medID != -1) {
+              medIDs.add(medID);
+              medInstructions.add(medInstructionControllers[i].text);
+              print("Medication MedID for $name, $form, $dosage is: $medID");
+            } else {
+              print("Failed to get MedID for $name, $form, $dosage");
+            }
+          } catch (e) {
+            print("Failed to get MedID: $e");
+          }
+        }
 
         print("Entered Medication ${i + 1} Name: $name");
         print("Entered Medication ${i + 1} Form: $form");
         print("Entered Medication ${i + 1} Dosage: $dosage");
         print("Entered Instructions ${i + 1}: ${medInstructionControllers[i].text}");
-      } else {
-        String name = medicationControllers[i].text;
-        String dosage = dosageController[i].text;
-        String form = medFormController[i].text;
-        print("Entered Medication ${i + 1} Name: $name");
-        print("Entered Medication ${i + 1} form: $form");
-        print("Entered Medication ${i + 1} dosage: $dosage");
-        print("Entered Instructions ${i + 1}: ${medInstructionControllers[i].text}");
-
-
       }
-    }
 
-    for (int i = 0; i < symptoms.length; i++) {
-      print("Entered Symptom ${i + 1}: ${symptomControllers[i].text}");
+      for (int i = 0; i < medIDs.length; i++) {
+        print("MedID for Medication ${i + 1}: ${medIDs[i]}");
+        print("Instruction for Medication ${i + 1}: ${medInstructions[i]}");
+      }
+
+      for (int i = 0; i < symptoms.length; i++) {
+        print("Entered Symptom ${i + 1}: ${symptomControllers[i].text}");
+      }
+
+      // Call the method to insert consultation information
+      await Consultation.insertConsultationInformation(
+          consultationID,
+          treatmentController.text,
+          consultationFeesController.text,
+          symptomControllers.map((controller) => controller.text).toList(),
+          consultationStatus
+      );
+
+      // Call the method to insert medication information
+      await Medication.insertMedicationsVideoCall(
+        consultationID,
+        medIDs,
+        medInstructions,
+      );
+
+      return true; // Indicate success
+    } catch (e) {
+      print("Failed to enter data: $e");
+      return false; // Indicate failure
     }
   }
+
+
+
 
 
   Future<void> _loadAllMedicine() async {

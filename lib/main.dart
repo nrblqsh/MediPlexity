@@ -65,7 +65,7 @@ class MyApp extends StatefulWidget {
     Key? key,
   }) : super(key: key);
 
-  static final String ipAddress = "192.168.8.108";
+  static final String ipAddress = "10.131.73.85";
   static final int appID = 746048871;
   static final String appSign = "7c1a48bfdd98bb2757f61194bd833b67f545aa254d2761955fb6dc26fd61a2f1";
 

@@ -13,6 +13,8 @@ class ButtonCallwithTabControllerPrescription extends StatefulWidget {
   final int consultationID;
   final int roleID;
   final int specialistID;
+  final String specialistName;
+  final String phoneSpecialist;
 
   const ButtonCallwithTabControllerPrescription({
     required this.patientName,
@@ -20,6 +22,8 @@ class ButtonCallwithTabControllerPrescription extends StatefulWidget {
     required this.consultationID,
     required this.roleID,
     required this.specialistID,
+    required this.specialistName,
+    required this.phoneSpecialist
   });
 
   @override
@@ -32,6 +36,8 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
   late String patientName;
   late int roleID;
   late int specialistID;
+  late String phoneSpecialist;
+  late String specialistName;
 
   late TabController _tabController; // Add TabController
   final PageStorageBucket bucket = PageStorageBucket();
@@ -46,6 +52,8 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
     consultationID = widget.consultationID;
     roleID = widget.roleID;
     specialistID = widget.specialistID;
+    phoneSpecialist = widget.phoneSpecialist;
+    specialistName = widget.specialistName;
     _tabController = TabController(length: 3, vsync: this);
 
 
@@ -110,6 +118,8 @@ class _ButtonCallwithTabControllerPrescriptionState extends State<ButtonCallwith
               consultationID: consultationID,
               specialistID: specialistID,
               roleID: roleID,
+              specialistName: specialistName,
+              phoneSpecialist: phoneSpecialist,
             ),
             DoPrediction(
 

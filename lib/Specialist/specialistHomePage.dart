@@ -27,6 +27,7 @@ import 'package:intl/intl.dart';
 import '../ZegoCloud_VideoCall/TabControllerPrescriptionForVideoCall.dart';
 import '../ZegoCloud_VideoCall/common.dart';
 import '../ZegoCloud_VideoCall/videoCall.dart';
+import 'Patient_Info/viewPatientList.dart';
 import 'Telemedicine_Consultation/viewUpcomingAppointmentforSpecialistSide.dart';
 
 
@@ -52,12 +53,13 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
   late String phone; // To store the retrieved phone number
   late String specialistName;
   late int specialistID;
-
-
-
-
-
   int _currentIndex = 2;
+
+  List<Widget> pages = [];
+
+
+
+
 
   // Position? userLocation;
 
@@ -141,6 +143,11 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                             'Patient List',
                           ),
                           onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        viewPatientScreen(specialistID: specialistID, specialistName: specialistName, phone: phone,)));
                             // Navigate to patient list screen
                           },
                         ),
@@ -174,6 +181,8 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                       ViewUpcomingAppointmentforSpecialistSide(
 
                                         specialistID: int.parse(specialistID.toString()),
+                                        specialistName: specialistName,
+                                        phone: phone,
 
                                       ),
                                 ));
@@ -215,7 +224,7 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                       children: [
                                         SizedBox(height: 10),
                                         SizedBox(
-                                         // width: 800,
+                                          width: 900,
                                           height: 800,
                                           child: FutureBuilder<List<Consultation>>(
                                             future: getTodayAppointmentforSpecialist(specialistID),
@@ -292,15 +301,6 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                   ),
                                                                 ),
 
-                                                      sendCallButton(
-                                                        patientID: "1",
-                                                        patientName: "test",
-                                                        // or false based on whether it's a video call or not
-                                                        onCallFinished: (code, message, errorInvitees) {
-                                                          // Handle call initiation result here
-                                                          onSendCallInvitationFinished(code, message, errorInvitees);
-                                                        },
-                                                      ),
                                                                 Container(
                                                                   width: 150,
                                                                   height: 200,// Adjust the width as needed
@@ -384,113 +384,42 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                             child: Column(
                                                                               children: [
                                                                                 IconButton(
-                                                                                  icon: Icon(Icons.add_ic_call_sharp,
+                                                                                  icon: Icon(Icons.turn_slight_right,
                                                                                       size: 30,
                                                                                       color: Color(MyApp.hexColor("228B22"))),
                                                                                   onPressed: () async {
-                                                                                    bool confirmed = await showDialog(
-                                                                                      context: context,
-                                                                                      builder: (BuildContext context) {
-                                                                                        return AlertDialog(
-                                                                                          shape: RoundedRectangleBorder(
-                                                                                            borderRadius: BorderRadius.circular(10.0),
-                                                                                          ),
-                                                                                          title: Text('Confirm Call Patient'),
-                                                                                          content: Text('Are you sure you want to call this patient?'),
-                                                                                          actions: [
+                                                                                    Navigator
+                                                                                        .push(
+                                                                                      context,
+                                                                                      MaterialPageRoute(
+                                                                                        builder: (
+                                                                                            context) =>
+                                                                                            ButtonCallwithTabControllerPrescription(
+                                                                                                patientID: consult
+                                                                                                    .patientID,
+                                                                                                patientName: consult
+                                                                                                    .patientName
+                                                                                                    .toString(),
+                                                                                                consultationID: int
+                                                                                                    .parse(
+                                                                                                    consult
+                                                                                                        .consultationID
+                                                                                                        .toString()),
+                                                                                                roleID: 1,
+                                                                                                specialistID: consult
+                                                                                                    .specialistID,
+                                                                                            phoneSpecialist: phone,
+                                                                                            specialistName: specialistName,),
 
-                                                                                            TextButton(
-                                                                                              onPressed: () {
-                                                                                                Navigator.of(context).pop(false);
-                                                                                              },
-                                                                                              child: Text('Cancel'),
-                                                                                            ),
-
-                                                                                            TextButton(
-                                                                                              onPressed: () async {
-
-                                                                                                int? consultationID = consult.consultationID;
-                                                                                                print("consullttt$consultationID");
-                                                                                                // Check and request camera and microphone permissions
-                                                                                                var statusCamera = await Permission.camera.request();
-                                                                                                var statusMicrophone = await Permission.microphone.request();
-
-                                                                                                if (statusCamera.isGranted && statusMicrophone.isGranted) {
-                                                                                                  print("dapat");
-                                                                                                  // Both camera and microphone permissions are granted
-                                                                                                  Navigator.of(context).pop(true); // Close the dialog and return true
-                                                                                                } else {
-                                                                                                  // Permissions are not granted
-                                                                                                  // Show a message to inform the user using a Dialog
-                                                                                                  showDialog(
-                                                                                                    context: context,
-                                                                                                    builder: (BuildContext context) {
-                                                                                                      return AlertDialog(
-                                                                                                        title: Text('Permission Required'),
-                                                                                                        content: Text('Camera and microphone permissions are required to make a call.'),
-                                                                                                        actions: [
-                                                                                                          TextButton(
-                                                                                                            onPressed: () {
-                                                                                                              Navigator.of(context).pop(false);
-                                                                                                            },
-                                                                                                            child: Text('OK'),
-                                                                                                          ),
-                                                                                                        ],
-                                                                                                      );
-                                                                                                    },
-                                                                                                  );
-                                                                                                }
-                                                                                              },
-                                                                                              child: Text('Confirm'),
-                                                                                            ),
-                                                                                          ],
-                                                                                        );
-                                                                                      },
+                                                                                      ),
                                                                                     );
 
-                                                                                    if (confirmed!= null && confirmed) {
-                                                                                      try {
-                                                                                       // actionButtion(true);
-                                                                                        print("masuk");
-                                                                                        Navigator.push(
-                                                                                          context,
-                                                                                          MaterialPageRoute(
-                                                                                            builder: (context) => ButtonCallwithTabControllerPrescription(patientID:consult.patientID,
-                                                                                                patientName:consult.patientName.toString(),
-                                                                                                consultationID:int.parse(consult.consultationID.toString()),
-                                                                                                roleID:1, specialistID:consult.specialistID),
 
-                                                                                          ),
-                                                                                        );
-                                                                                        // Navigator.push(
-                                                                                        //   context,
-                                                                                        //   MaterialPageRoute(
-                                                                                        //     builder: (context) => VideoCall(
-                                                                                        //         patientID:consult.patientID,
-                                                                                        //         patientName:consult.patientName.toString(),
-                                                                                        //     consultationID:int.parse(consult.consultationID.toString()),
-                                                                                        //         roleID:1, specialistID:consult.specialistID),
-                                                                                        //   ),
-                                                                                        // );
-
-                                                                                        // sendCallButton(
-                                                                                        //   patientID: "1",
-                                                                                        //    patientName: consult.patientName.toString(),
-                                                                                        //    // or false based on whether it's a video call or not
-                                                                                        //   onCallFinished: (code, message, errorInvitees) {
-                                                                                        //     // Handle call initiation result here
-                                                                                        //     onSendCallInvitationFinished(code, message, errorInvitees);
-                                                                                        //   },
-                                                                                        // );
-
-                                                                                        print("test");
-                                                                                      } catch (e) {
-                                                                                        print('Error during sen: $e');
-                                                                                      }
-                                                                                    }
                                                                                   },
-                                                                                ),
-                                                                                Text('Call Now'),
+                                                                                    ),
+                                                                                        Text(
+                                                                                        'Call Screen'),
+
                                                                               ],
                                                                             ),
                                                                           ),
@@ -567,6 +496,64 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
 
           ),
                           ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+
+            if (index == 0) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          viewPatientScreen(specialistID: specialistID, specialistName: specialistName, phone: phone,)));
+            } else if (index == 1) {
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => viewSpecialistScreen(patientID: patientID,)));
+            } else if (index == 2) {
+              Navigator.pushReplacementNamed(context, '/menu');
+            } else if (index == 3) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ViewUpcomingAppointmentforSpecialistSide(specialistID: specialistID,
+                        specialistName: specialistName,
+                      phone: phone,)));
+            } else if (index == 4) {
+              // Navigator.push(context,
+              //     MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID,)));
+            }
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.medical_services),
+              label: 'EMR',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.health_and_safety),
+              label: 'TeleMedicine',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Menu',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today),
+              label: 'View Appointment',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+          backgroundColor: Colors.grey[700],
+          selectedItemColor: Colors.blueGrey,
+          unselectedItemColor: Colors.grey,
+        ),
                         ),
 
                             );
