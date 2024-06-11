@@ -9,18 +9,18 @@ import 'package:http/http.dart' as http;
 import '../../../Model/consultation.dart';
 import '../../../Model/medication.dart';
 
-
 class MedicationDetails extends StatefulWidget {
   final int consultationID;
   final int patientID;
   final String patientName;
   final String phone;
 
-
-  MedicationDetails({required this.consultationID,
-  required this.patientID,
-  required this.patientName,
-  required this.phone});
+  MedicationDetails({
+    required this.consultationID,
+    required this.patientID,
+    required this.patientName,
+    required this.phone,
+  });
 
   @override
   _MedicationDetailsState createState() => _MedicationDetailsState();
@@ -28,7 +28,6 @@ class MedicationDetails extends StatefulWidget {
 
 class _MedicationDetailsState extends State<MedicationDetails> {
   Consultation? consultation;
-  late int storedConsultID;
   late int consultationID;
   late int patientID;
   late String patientName;
@@ -50,15 +49,12 @@ class _MedicationDetailsState extends State<MedicationDetails> {
     patientName = widget.patientName;
     patientID = widget.patientID;
     phone = widget.phone;
-
   }
-
-
 
   Future<List<Medication>> fetchPatientMedication(int consultationID) async {
     Medication med = Medication(
-        consultationID: consultationID,
-        );
+      consultationID: consultationID,
+    );
     print("consultation id ${consultationID}");
     print(med.fetchPatientMedication(consultationID));
     return await med.fetchPatientMedication(consultationID);
@@ -71,16 +67,15 @@ class _MedicationDetailsState extends State<MedicationDetails> {
     } else {
       print('Failed to fetch consultation');
     }
-    return consultation; // Return the consultation object or null
+    return consultation;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-        body: Column(children: [
-
-          SizedBox(height: 30,),
+      body: Column(
+        children: [
+          SizedBox(height: 30),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -103,7 +98,6 @@ class _MedicationDetailsState extends State<MedicationDetails> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
-
                         child: FutureBuilder<List<Medication>>(
                           future: fetchPatientMedication(consultationID),
                           builder: (context, snapshot) {
@@ -122,11 +116,9 @@ class _MedicationDetailsState extends State<MedicationDetails> {
                                     Medication med = meds[index];
                                     return SingleChildScrollView(
                                       child: Card(
-
                                         child: InkWell(
                                           child: Text(
                                             'Medicine Name: ${med.medGeneral} -${med.medForm} - ${med.dosage} \n '
-
                                                 'Instruction: ${med.medInstruction}\n',
                                             style: TextStyle(
                                               fontSize: 14,
@@ -152,6 +144,38 @@ class _MedicationDetailsState extends State<MedicationDetails> {
               ),
             ],
           ),
-        ]));
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: 100,
+                color: Colors.grey[200],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(10, (index) {
+                      return Container(
+                        width: 100,
+                        margin: EdgeInsets.all(8.0),
+                        color: Colors.blue,
+                        child: Center(
+                          child: Text(
+                            'Item $index',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
