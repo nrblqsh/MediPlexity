@@ -17,19 +17,23 @@ import 'editProfilePatient.dart';
 
 class SettingsScreen extends StatefulWidget {
   final int patientID;
+  final String patientName;
+  final String phone;
   int _currentIndex = 4;
 
 
-  SettingsScreen({required this.patientID});
+  SettingsScreen({required this.patientID,
+  required this.patientName,
+  required this.phone});
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late int patientID;
-  String? patientName;
+  late String patientName;
   String? phoneNumber;
-  String phone='';
+  late String phone;
   String name = " ";
   Uint8List? patientImage;
 
@@ -74,6 +78,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadID() async {
     patientID = widget.patientID;
+    phone= widget.phone;
+    patientName = widget.patientName;
+
     List<Patient> patients = await Patient.loadAll(patientID);
 
     if (patients.isNotEmpty) {
@@ -81,16 +88,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       print("Raw JSON Data: ${firstPatient.toJson()}");
 
-      setState(() {
-        patientName = firstPatient.patientName ?? 'N/A';
-        phoneNumber = firstPatient.phone ?? 'N/A';
 
-      });
 
-      print("Patient Information:");
-      print("Name: $patientName");
-      print("Phone: $phoneNumber");
-      ;
     } else {
       print('No patient data available');
     }
@@ -527,7 +526,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          MedicalRecordScreen(patientID: patientID)));
+                          MedicalRecordScreen(patientID: patientID, patientName: patientName,
+                            phone: phone,
+                          )));
             } else if (index == 1) {
               Navigator.push(
                   context,
@@ -545,7 +546,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       builder: (context) => ViewUpcomingAppointmentforPatientSide(patientID: patientID,)));
             } else if (index == 4) {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID,)));
+                  MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID, patientName: patientName,phone: phone,)));
             }
           },
           items: [

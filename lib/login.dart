@@ -11,6 +11,7 @@ import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import 'Patient/forgotPasswordScreen.dart';
 import 'Patient/patientHomePage.dart';
 import 'Specialist/specialistHomePage.dart';
+import 'ZegoCloud_VideoCall/common.dart';
 import 'main.dart';
 
 
@@ -269,9 +270,6 @@ class _LoginScreenState extends State<LoginScreen> {
           await pref.setString("password", passwordController.text);
           await pref.setString("patientName", patientName);
           await pref.setInt("patientID", patientID);
-          // Save patient name in SharedPreferences
-          // int? patientId = int.tryParse(patientID.toString());
-          // OneSignal.login(patientId.toString());
 
 
           Fluttertoast.showToast(
@@ -283,7 +281,42 @@ class _LoginScreenState extends State<LoginScreen> {
             textColor: Colors.white,
             fontSize: 16.0,
           );
-          Navigator.push(
+
+          ZegoUIKitPrebuiltCallInvitationService().init(
+              appID: MyApp.appID /*input your AppID*/,
+              appSign:  MyApp.appSign,
+              userID:  patientID.toString(),
+              userName: patientName,
+              notifyWhenAppRunningInBackgroundOrQuit: true,
+              androidNotificationConfig: ZegoAndroidNotificationConfig(
+                channelID: "ZegoUIKit",
+                channelName: "Call Notification",
+                sound: "call",
+                icon: "call",
+              ),
+              iOSNotificationConfig: ZegoIOSNotificationConfig(
+                systemCallingIconName: 'CallKitIcon'
+              ),
+              plugins: [
+                ZegoUIKitSignalingPlugin(),
+              ],
+            requireConfig: (ZegoCallInvitationData data)
+              {
+                final config = (data.invitees.length > 1)?ZegoCallType.videoCall == data.type
+                    ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+                    : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+                    : ZegoCallType.videoCall == data.type
+                    ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+                    : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+
+                config.avatarBuilder = customAvatarBuilder;
+                config.topMenuBarConfig.isVisible = true;
+                config.topMenuBarConfig.buttons.insert(0, ZegoMenuBarButtonName.minimizingButton);
+                return config;
+              },
+          );
+
+              Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => HomePage(phone: phoneController.text, patientName: patientName, patientID: patientID,),
@@ -310,14 +343,41 @@ class _LoginScreenState extends State<LoginScreen> {
           await pref.setInt("specialistID", specialistID);
           await pref.setString("logStatus", logStatus);
 
-          ZegoUIKitPrebuiltCallInvitationService().init(
-            appID: MyApp.appID, // input your AppID
-            appSign: MyApp.appSign, // input your AppSign
-            userID: specialistID.toString(),
-            userName: specialistName,
-            plugins: [ZegoUIKitSignalingPlugin()],
-          );
 
+          ZegoUIKitPrebuiltCallInvitationService().init(
+            appID: MyApp.appID /*input your AppID*/,
+            appSign:  MyApp.appSign,
+            userID:  specialistID.toString(),
+            userName: specialistName,
+            notifyWhenAppRunningInBackgroundOrQuit: true,
+            androidNotificationConfig: ZegoAndroidNotificationConfig(
+              channelID: "ZegoUIKit",
+              channelName: "Call Notification",
+              sound: "call",
+              icon: "call",
+            ),
+            iOSNotificationConfig: ZegoIOSNotificationConfig(
+                systemCallingIconName: 'CallKitIcon'
+            ),
+            plugins: [
+              ZegoUIKitSignalingPlugin(),
+            ],
+            requireConfig: (ZegoCallInvitationData data)
+            {
+              final config = (data.invitees.length > 1)?ZegoCallType.videoCall == data.type
+                  ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+                  : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+                  : ZegoCallType.videoCall == data.type
+                  ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+                  : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+
+              config.avatarBuilder = customAvatarBuilder;
+              config.topMenuBarConfig.isVisible = true;
+              config.topMenuBarConfig.buttons.insert(0, ZegoMenuBarButtonName.minimizingButton);
+              return config;
+            },
+          );
+          
           Fluttertoast.showToast(
             msg: "Hello, $specialistName",
             toastLength: Toast.LENGTH_LONG,
@@ -416,6 +476,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
 
+}
+
+class ZegoCallInvitationNotificationConfig {
 }
 
 

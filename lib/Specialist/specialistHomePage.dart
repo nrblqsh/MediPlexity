@@ -8,18 +8,26 @@ import 'package:fyp/testHeartRate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:faker/faker.dart';
+
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 // import 'package:onesignal_flutter/onesignal_flutter.dart';
 //
 import 'package:flutter/material.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '../Model/consultation.dart';
 import 'package:intl/intl.dart';
 
+import '../ZegoCloud_VideoCall/TabControllerPrescriptionForVideoCall.dart';
+import '../ZegoCloud_VideoCall/common.dart';
+import '../ZegoCloud_VideoCall/videoCall.dart';
+import 'Patient_Info/viewPatientList.dart';
 import 'Telemedicine_Consultation/viewUpcomingAppointmentforSpecialistSide.dart';
 
 
@@ -45,12 +53,13 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
   late String phone; // To store the retrieved phone number
   late String specialistName;
   late int specialistID;
-
-
-
-
-
   int _currentIndex = 2;
+
+  List<Widget> pages = [];
+
+
+
+
 
   // Position? userLocation;
 
@@ -134,6 +143,11 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                             'Patient List',
                           ),
                           onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        viewPatientScreen(specialistID: specialistID, specialistName: specialistName, phone: phone,)));
                             // Navigate to patient list screen
                           },
                         ),
@@ -167,6 +181,8 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                       ViewUpcomingAppointmentforSpecialistSide(
 
                                         specialistID: int.parse(specialistID.toString()),
+                                        specialistName: specialistName,
+                                        phone: phone,
 
                                       ),
                                 ));
@@ -208,7 +224,7 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                       children: [
                                         SizedBox(height: 10),
                                         SizedBox(
-                                         // width: 800,
+                                          width: 900,
                                           height: 800,
                                           child: FutureBuilder<List<Consultation>>(
                                             future: getTodayAppointmentforSpecialist(specialistID),
@@ -368,144 +384,42 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
                                                                             child: Column(
                                                                               children: [
                                                                                 IconButton(
-                                                                                  icon: Icon(Icons.add_ic_call_sharp,
+                                                                                  icon: Icon(Icons.turn_slight_right,
                                                                                       size: 30,
                                                                                       color: Color(MyApp.hexColor("228B22"))),
                                                                                   onPressed: () async {
-                                                                                    bool confirmed = await showDialog(
-                                                                                      context: context,
-                                                                                      builder: (BuildContext context) {
-                                                                                        return AlertDialog(
-                                                                                          shape: RoundedRectangleBorder(
-                                                                                            borderRadius: BorderRadius.circular(10.0),
-                                                                                          ),
-                                                                                          title: Text('Confirm Call Patient'),
-                                                                                          content: Text('Are you sure you want to call this patient?'),
-                                                                                          actions: [
+                                                                                    Navigator
+                                                                                        .push(
+                                                                                      context,
+                                                                                      MaterialPageRoute(
+                                                                                        builder: (
+                                                                                            context) =>
+                                                                                            ButtonCallwithTabControllerPrescription(
+                                                                                                patientID: consult
+                                                                                                    .patientID,
+                                                                                                patientName: consult
+                                                                                                    .patientName
+                                                                                                    .toString(),
+                                                                                                consultationID: int
+                                                                                                    .parse(
+                                                                                                    consult
+                                                                                                        .consultationID
+                                                                                                        .toString()),
+                                                                                                roleID: 1,
+                                                                                                specialistID: consult
+                                                                                                    .specialistID,
+                                                                                            phoneSpecialist: phone,
+                                                                                            specialistName: specialistName,),
 
-                                                                                            TextButton(
-                                                                                              onPressed: () {
-                                                                                                Navigator.of(context).pop(false);
-                                                                                              },
-                                                                                              child: Text('Cancel'),
-                                                                                            ),
-
-                                                                                            TextButton(
-                                                                                              onPressed: () async {
-
-                                                                                                int? consultationID = consult.consultationID;
-                                                                                                print("consullttt$consultationID");
-                                                                                                // Check and request camera and microphone permissions
-                                                                                                var statusCamera = await Permission.camera.request();
-                                                                                                var statusMicrophone = await Permission.microphone.request();
-
-                                                                                                if (statusCamera.isGranted && statusMicrophone.isGranted) {
-                                                                                                  print("dapat");
-                                                                                                  // Both camera and microphone permissions are granted
-                                                                                                  Navigator.of(context).pop(true); // Close the dialog and return true
-                                                                                                } else {
-                                                                                                  // Permissions are not granted
-                                                                                                  // Show a message to inform the user using a Dialog
-                                                                                                  showDialog(
-                                                                                                    context: context,
-                                                                                                    builder: (BuildContext context) {
-                                                                                                      return AlertDialog(
-                                                                                                        title: Text('Permission Required'),
-                                                                                                        content: Text('Camera and microphone permissions are required to make a call.'),
-                                                                                                        actions: [
-                                                                                                          TextButton(
-                                                                                                            onPressed: () {
-                                                                                                              Navigator.of(context).pop(false);
-                                                                                                            },
-                                                                                                            child: Text('OK'),
-                                                                                                          ),
-                                                                                                        ],
-                                                                                                      );
-                                                                                                    },
-                                                                                                  );
-                                                                                                }
-                                                                                              },
-                                                                                              child: Text('Confirm'),
-                                                                                            ),
-                                                                                          ],
-                                                                                        );
-                                                                                      },
+                                                                                      ),
                                                                                     );
 
-                                                                                    if (confirmed!= null && confirmed) {
-                                                                                      try {
-                                                                                       // actionButtion(true);
-                                                                                        print("masuk");
 
-
-
-                                                                                        // ZegoSendCallInvitationButton actionButton(bool isVideo)=>
-                                                                                        //     ZegoSendCallInvitationButton(
-                                                                                        //       isVideoCall:isVideo,
-                                                                                        //       resourceID:"zegouikit_call",
-                                                                                        //       invitees: [
-                                                                                        //         ZegoUIKitUser(id: "1",
-                                                                                        //             name: "test")
-                                                                                        //       ],
-                                                                                        //     );
-                                                                                        //
-                                                                                        //
-                                                                                        // actionButton(true);
-
-                                                                                        // updateStatustoGetReadytoCall(consultationID);
-                                                                                        // Navigator.push(
-                                                                                        //   context,
-                                                                                        //   MaterialPageRoute(
-                                                                                        //     builder: (context) => MyCall(
-                                                                                        //       callID: dynamicCallID,
-                                                                                        //       id: specialistIDtoString,
-                                                                                        //       name: specialistName,
-                                                                                        //       roleId: 1,
-                                                                                        //       consultationID: consultationID,
-                                                                                        //     ),
-                                                                                        //   ),
-                                                                                        //
-                                                                                        // );
-                                                                                        // _sendNotification( pd);
-
-
-
-
-
-                                                                                        //await sendCallNotificationWithInAppActions(patientIDforSendingNotification, dynamicCallID);
-
-                                                                                        // Navigator.push(
-                                                                                        //   context,
-                                                                                        //   MaterialPageRoute(
-                                                                                        //     builder: (context) => MyCall(
-                                                                                        //       callID: dynamicCallID,
-                                                                                        //       id: specialistIDtoString,
-                                                                                        //       name: specialistName,
-                                                                                        //       roleId: 1,
-                                                                                        //     ),
-                                                                                        //   ),
-                                                                                        // );
-                                                                                        // //save callid dulu dlm db
-                                                                                      //  String? fcmToken = await getFCMTokenfromPatient(consultationID);
-                                                                                       // print("fcm token dalam specialist $fcmToken");
-
-
-                                                                                        // if (fcmToken != null) {
-                                                                                        //
-                                                                                        //
-                                                                                        //   //  await sendFCMNotification(fcmToken, dynamicCallID, specialistID, specialistName);
-                                                                                        // } else {
-                                                                                        //   print('FCM token is null. Cannot send notification.');
-                                                                                        // }
-
-
-                                                                                      } catch (e) {
-                                                                                        print('Error during sen: $e');
-                                                                                      }
-                                                                                    }
                                                                                   },
-                                                                                ),
-                                                                                Text('Call Now'),
+                                                                                    ),
+                                                                                        Text(
+                                                                                        'Call Screen'),
+
                                                                               ],
                                                                             ),
                                                                           ),
@@ -582,6 +496,64 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
 
           ),
                           ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+
+            if (index == 0) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          viewPatientScreen(specialistID: specialistID, specialistName: specialistName, phone: phone,)));
+            } else if (index == 1) {
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => viewSpecialistScreen(patientID: patientID,)));
+            } else if (index == 2) {
+              Navigator.pushReplacementNamed(context, '/menu');
+            } else if (index == 3) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ViewUpcomingAppointmentforSpecialistSide(specialistID: specialistID,
+                        specialistName: specialistName,
+                      phone: phone,)));
+            } else if (index == 4) {
+              // Navigator.push(context,
+              //     MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID,)));
+            }
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.medical_services),
+              label: 'EMR',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.health_and_safety),
+              label: 'TeleMedicine',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Menu',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today),
+              label: 'View Appointment',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+          backgroundColor: Colors.grey[700],
+          selectedItemColor: Colors.blueGrey,
+          unselectedItemColor: Colors.grey,
+        ),
                         ),
 
                             );
@@ -635,6 +607,142 @@ class SpecialistHomePageState extends State<SpecialistHomePage> {
   }
 
 
+  // Widget sendCallInvitationButton({
+  //   required bool isVideoCall,
+  //   required List<String> inviteeUserIDs,
+  //   void Function(String code, String message, List<String> errorInvitees)? onCallFinished,
+  // }) {
+  //   // Convert list of user IDs to list of ZegoUIKitUser objects
+  //   List<ZegoUIKitUser> invitees = inviteeUserIDs.map((userID) {
+  //     return ZegoUIKitUser(id: userID, name: 'user_$userID');
+  //   }).toList();
+  //
+  //   return ZegoSendCallInvitationButton(
+  //     isVideoCall: isVideoCall,
+  //     invitees: invitees,
+  //     resourceID: "zego_data",
+  //     iconSize: const Size(40, 40),
+  //     buttonSize: const Size(50, 50),
+  //     onPressed: onCallFinished, // Handle the result of sending the invitation
+  //   );
+  // }
+
+  void onSendCallInvitationFinished(
+      String code,
+      String message,
+      List<String> errorInvitees,
+      ) {
+    if (errorInvitees.isNotEmpty) {
+      String userIDs = "";
+      for (int index = 0; index < errorInvitees.length; index++) {
+        if (index >= 5) {
+          userIDs += '... ';
+          break;
+        }
+
+        var userID = errorInvitees.elementAt(index);
+        userIDs += userID + ' ';
+      }
+      if (userIDs.isNotEmpty) {
+        userIDs = userIDs.substring(0, userIDs.length - 1);
+      }
+
+      var message = 'User doesn\'t exist or is offline: $userIDs';
+      if (code.isNotEmpty) {
+        message += ', code: $code, message:$message';
+      }
+      showToast(
+        message,
+        position: StyledToastPosition.top,
+        context: context,
+      );
+    } else if (code.isNotEmpty) {
+      showToast(
+        'code: $code, message:$message',
+        position: StyledToastPosition.top,
+        context: context,
+      );
+    }
+  }
+
+  // Widget sendCallButton({
+  //   required String patientID,
+  //   required String patientName,
+  //
+  //   void Function(String code, String message, List<String>)? onCallFinished,
+  // }) {
+  //   return ZegoSendCallInvitationButton(
+  //     isVideoCall: true,
+  //     invitees: [
+  //       ZegoUIKitUser(
+  //         id: patientID,
+  //         name: patientName,
+  //
+  //       ),
+  //     ],
+  //     resourceID: "zego_data",
+  //
+  //     iconSize: const Size(40, 40),
+  //     buttonSize: const Size(50, 50),
+  //     onPressed: onCallFinished,
+  //   );
+  // }
+
+
+  Widget sendCallButton({
+    required String patientID,
+    required String patientName,
+    void Function(String code, String message, List<String>)? onCallFinished,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        // // Navigate to ConsultationPrescription page first
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ConsultationPrescription(
+        //       // Pass necessary parameters if needed
+        //     ),
+        //   ),
+        // );
+
+        // Then navigate to VideoCall page
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoCall(
+              patientID: int.parse(patientID),
+              patientName: patientName,
+              consultationID: 1, // Replace with actual consultation ID
+              roleID: 1, // Replace with actual role ID
+              specialistID: 1, // Replace with actual specialist ID
+            ),
+          ),
+        );
+
+        // After navigation, call the onCallFinished callback if provided
+        if (onCallFinished != null) {
+          onCallFinished("code", "message", ["errorInvitees"]);
+        }
+      },
+      child: ZegoSendCallInvitationButton(
+        isVideoCall: true,
+        invitees: [
+          ZegoUIKitUser(
+            id: patientID,
+            name: patientName,
+          ),
+        ],
+        resourceID: "zego_data",
+        iconSize: const Size(40, 40),
+        buttonSize: const Size(50, 50),
+      ),
+    );
+  }
+
+
+
+
 
   Future<void> _loadData() async {
 
@@ -648,21 +756,39 @@ setState(() {
   print("specialis name ${specialistName}");
 });
 
-    //   print("apptpt$patientID");
-    //
-    //
-    //   List<Consultation> consultations = await _fetchTodayConsultationsPatientSide(patientID);
-    //
-    //   print('Fetched Consultations: $consultations');
-    //
-    //
+
+    ZegoUIKitPrebuiltCallInvitationService().init(
+      appID: MyApp.appID /*input your AppID*/,
+      appSign:  MyApp.appSign,
+      userID:  specialistID.toString(),
+      userName: specialistName,
+      notifyWhenAppRunningInBackgroundOrQuit: true,
+      androidNotificationConfig: ZegoAndroidNotificationConfig(
+        channelID: "zego_channel",
+      //  channelName: "Call Notification",
+        sound: "notification",
+        icon: "notification_icon",
+      ),
+      plugins: [
+        ZegoUIKitSignalingPlugin(),
+      ],
+      requireConfig: (ZegoCallInvitationData data)
+      {
+        final config = (data.invitees.length > 1)?ZegoCallType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.groupVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.groupVoiceCall()
+            : ZegoCallType.videoCall == data.type
+            ? ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall()
+            : ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall();
+
+        config.avatarBuilder = customAvatarBuilder;
+        config.topMenuBarConfig.isVisible = true;
+        config.topMenuBarConfig.buttons.insert(0, ZegoMenuBarButtonName.minimizingButton);
+        return config;
+      },
+    );
+
   }
-
-  //
-  //
-  //
-  //
-
 
   Future<List<Consultation>> getTodayAppointmentforSpecialist(
       int specialistID) async {

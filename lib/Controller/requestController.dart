@@ -12,7 +12,7 @@ class RequestController {
   dynamic _resultData;
   Map<dynamic, dynamic> get requestBody => _body;
 
-  RequestController({required this.path, this.server = "http://10.131.75.51"});
+  RequestController({required this.path, this.server = "http://10.131.73.85"});
 
   // Set the request body for JSON requests
   setBody(Map<String, dynamic> data) {

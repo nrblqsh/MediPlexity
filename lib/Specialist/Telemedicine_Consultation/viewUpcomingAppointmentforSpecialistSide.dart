@@ -13,11 +13,17 @@ import '../../Model/specialist.dart';
 import '../../main.dart';
 import 'package:intl/intl.dart';
 
+import '../specialistHomePage.dart';
+
 
 class ViewUpcomingAppointmentforSpecialistSide extends StatefulWidget {
 
   final int specialistID;
-  ViewUpcomingAppointmentforSpecialistSide({required this.specialistID});
+  final String specialistName;
+  final String phone;
+  ViewUpcomingAppointmentforSpecialistSide({required this.specialistID,
+  required this.specialistName,
+  required this.phone});
 
   @override
   State<ViewUpcomingAppointmentforSpecialistSide> createState() => _ViewUpcomingAppointmentforSpecialistSideState();
@@ -30,6 +36,10 @@ class _ViewUpcomingAppointmentforSpecialistSideState extends State<ViewUpcomingA
   bool isButtonEnabled = false; // Set it to false to disable the button
   late int patientID;
   late int specialistID;
+  late String specialistName;
+  late String phone;
+  int _currentIndex = 3;
+
 
   // String specialistName ="";
   // String specialistPhone ="";
@@ -44,17 +54,15 @@ class _ViewUpcomingAppointmentforSpecialistSideState extends State<ViewUpcomingA
 
   @override
   void initState() {
-    _loadData();
+    specialistID = widget.specialistID;
+    phone = widget.phone;
+    specialistName = widget.specialistName;
     _fetchConsultations();
 
   }
 
 
-  Future<void> _loadData() async {
 
-    specialistID = widget.specialistID;
-    // Further processing...
-  }
 
 
   String _formatDateTime(String dateTimeString) {
@@ -244,7 +252,66 @@ class _ViewUpcomingAppointmentforSpecialistSideState extends State<ViewUpcomingA
 
       ),
 
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
 
+          if (index == 0) {
+            // Navigator.push(
+            //     context,
+            //     MaterialPageRoute(
+            //         builder: (context) =>
+            //             MedicalRecordScreen(patientID: patientID)));
+          } else if (index == 1) {
+            // Navigator.push(
+            //     context,
+            //     MaterialPageRoute(
+            //         builder: (context) => viewSpecialistScreen(patientID: patientID,)));
+          } else if (index == 2) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SpecialistHomePage(specialistID: specialistID, phone: phone, specialistName: '',)));          } else if (index == 3) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ViewUpcomingAppointmentforSpecialistSide(specialistID: specialistID,
+                    specialistName: specialistName,
+                    phone: phone,)));
+          } else if (index == 4) {
+            // Navigator.push(context,
+            //     MaterialPageRoute(builder: (context) => SettingsScreen(patientID: patientID,)));
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.medical_services),
+            label: 'EMR',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.health_and_safety),
+            label: 'TeleMedicine',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Menu',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'View Appointment',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+        backgroundColor: Colors.grey[700],
+        selectedItemColor: Colors.blueGrey,
+        unselectedItemColor: Colors.grey,
+      ),
     );
 
 
@@ -678,6 +745,7 @@ class _ViewUpcomingAppointmentforSpecialistSideState extends State<ViewUpcomingA
 
     );
   }
+
 }
 
 

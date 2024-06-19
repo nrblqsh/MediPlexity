@@ -1,7 +1,24 @@
+buildscript {
+    ext.kotlin_version = '1.8.0'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // support notification
+        classpath 'com.google.gms:google-services:4.3.14'
+    }
+}
+
 plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -24,7 +41,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.fyp"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -58,6 +75,9 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
         }
     }
 }
@@ -66,4 +86,15 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation 'com.google.firebase:firebase-messaging:21.1.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.google.firebase:firebase-analytics'
+
+
+
+}
+
+apply plugin: 'com.google.gms.google-services' // Ensure this is applied at the bottom

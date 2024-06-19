@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:fyp/Patient/e-MedicalRecord/medicalConsultationReport/specificConsultationDetails.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'medicalConsultationReport/allConsultationHistory.dart';
+import 'medicationDetails.dart';
 
 
-class MedicalRecordScreen extends StatefulWidget {
+
+class ConsultationDetailsOption extends StatefulWidget {
+  final int consultationID;
   final int patientID;
   final String patientName;
   final String phone;
 
-  MedicalRecordScreen({
+  ConsultationDetailsOption({
+    required this.consultationID,
     required this.patientID,
-  required this.patientName,
-  required this.phone});
+    required this.patientName,
+    required this.phone});
 
   @override
-  _MedicalRecordScreenState createState() => _MedicalRecordScreenState();
+  _ConsultationDetailsOptionScreenState createState() => _ConsultationDetailsOptionScreenState();
 }
 
-class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
+class _ConsultationDetailsOptionScreenState extends State<ConsultationDetailsOption> {
   late int patientID;
   late String patientName;
   late String phone;
+  late int consultationID;
 
   @override
   void initState() {
@@ -29,6 +34,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
     patientID = widget.patientID;
     patientName = widget.patientName;
     phone = widget.phone;
+    consultationID = widget.consultationID;
   }
 
   @override
@@ -56,18 +62,18 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
               // Set the color for the selected label
               tabs: [
                 CustomTab(
-                  text: 'Medical Record',
+                  text: 'Consultation Details',
                 ),
                 CustomTab(
-                  text: 'Vital Info History',
+                  text: 'Medication Details',
                 ),
               ],
             ),
           ),
           body: TabBarView(
             children: [
-              ConsultationHistory(patientID:patientID, patientName: patientName, phone: phone,),
-              ConsultationHistory(patientID:patientID, patientName: patientName, phone: phone,),
+              SpecificConsultationDetails(patientID:patientID, patientName: patientName, phone: phone,consultationID: consultationID,),
+              MedicationDetails(patientID:patientID, patientName: patientName, phone: phone, consultationID: consultationID,),
 
             ],
           ),
